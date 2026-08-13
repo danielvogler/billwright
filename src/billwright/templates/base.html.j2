@@ -1,0 +1,16 @@
+{#
+  Shared document shell. The wordmark is typeset here rather than embedded as an
+  image: the brand logo is two lines of Inter Medium with a red period, so
+  setting it in HTML keeps it vector-sharp and always in step with the document.
+#}
+<!DOCTYPE html>
+<html lang="{{ language }}">
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="author" content="{{ company.name }}" />
+  </head>
+  <body>
+    {% block body %}{% endblock %}
+  </body>
+</html>

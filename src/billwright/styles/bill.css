@@ -1,0 +1,260 @@
+/* The invoice itself. Layout follows the Word original — sender line, address
+ * block, meta block, title, salutation, line table, totals, terms, signature —
+ * because that is the shape the client already recognises. Everything else is
+ * new: real Inter, Swiss number formatting, and rules instead of table borders.
+ */
+
+.sheet {
+  position: relative;
+}
+
+/* Page 1 reserves the payment-part strip; later pages are ordinary. */
+.sheet--reserved {
+  page: reserved;
+}
+
+/* ---- letter head ---- */
+
+/* The vertical rhythm below is deliberately one scale step tighter than it
+ * looks like it wants to be. The body shares an A4 sheet with a 105 mm payment
+ * part, and the sample invoice previously fit on one page with no headroom at
+ * all: a single extra line item, or the slightly different text metrics of
+ * another platform's Pango build, pushed the payment part onto its own sheet.
+ * Roughly 6 mm of block spacing bought back here is what makes a four- or
+ * five-line invoice still fit, on any machine. */
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.head__wordmark {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.head__contact {
+  text-align: right;
+  font-size: var(--size-small);
+  color: var(--muted);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+
+.head__tagline {
+  font-size: var(--size-micro);
+  color: var(--muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-top: var(--space-1);
+}
+
+/* The sender one-liner that sits above the recipient block in a window
+ * envelope. Small, underlined, exactly as postal convention expects. */
+.sender-line {
+  font-size: var(--size-micro);
+  color: var(--muted);
+  border-bottom: var(--rule-weight) solid var(--rule);
+  padding-bottom: 1mm;
+  margin-bottom: var(--space-2);
+}
+
+.address-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-3);
+}
+
+.recipient {
+  line-height: var(--leading-tight);
+}
+
+.recipient__name {
+  font-weight: 500;
+}
+
+.meta {
+  min-width: 62mm;
+  font-size: var(--size-small);
+  line-height: var(--leading-tight);
+}
+
+.meta__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0.8mm 0;
+}
+
+.meta__row--strong {
+  font-weight: 600;
+  border-top: var(--rule-weight) solid var(--rule);
+  border-bottom: var(--rule-weight) solid var(--rule);
+  margin-top: 1mm;
+  padding: 1.4mm 0;
+}
+
+.meta__note {
+  font-size: var(--size-micro);
+  color: var(--muted);
+  margin-top: 1.5mm;
+  line-height: 1.3;
+}
+
+/* ---- title ---- */
+
+.title {
+  font-size: var(--size-title);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-1);
+}
+
+/* The one piece of brand colour on the page. A full tinted band would be too
+ * much on an invoice; a 1pt accent rule under the title is enough. */
+.title-rule {
+  border: 0;
+  border-top: var(--rule-weight-strong) solid var(--accent);
+  width: 22mm;
+  margin: 0 0 var(--space-2) 0;
+}
+
+.intro {
+  margin-bottom: var(--space-2);
+  /* Wide enough that the salutation and the opening sentence hold two lines
+   * rather than three. On a sheet that must also carry a 105 mm payment part,
+   * one wrapped line is real estate. */
+  max-width: 168mm;
+}
+
+/* ---- line items ---- */
+
+.items {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-2);
+}
+
+.items thead th {
+  font-size: var(--size-small);
+  font-weight: 600;
+  text-align: left;
+  padding: 0 var(--space-1) 1.6mm 0;
+  border-bottom: var(--rule-weight-strong) solid var(--ink);
+  white-space: nowrap;
+}
+
+.items thead th.num,
+.items tbody td.num {
+  text-align: right;
+  padding-right: 0;
+  padding-left: var(--space-2);
+}
+
+.items tbody td {
+  padding: 1.6mm var(--space-1) 1.6mm 0;
+  border-bottom: var(--rule-weight) solid var(--rule);
+  vertical-align: top;
+}
+
+.items tbody td:first-child {
+  color: var(--muted);
+  width: 12mm;
+}
+
+/* The unit sits immediately right of a right-aligned quantity, so it needs its
+ * own gutter or the two read as one word ("7.25Stunden"). */
+.items thead th.items__unit,
+.items tbody td.items__unit {
+  padding-left: var(--space-2);
+  white-space: nowrap;
+}
+
+.items__description {
+  width: 100%;
+}
+
+/* ---- totals ---- */
+
+.totals {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-3);
+}
+
+.totals__table {
+  min-width: 78mm;
+  border-collapse: collapse;
+}
+
+.totals__table td {
+  padding: 1.6mm 0;
+}
+
+.totals__table td.num {
+  padding-left: var(--space-3);
+}
+
+.totals__row--grand td {
+  font-weight: 600;
+  font-size: var(--size-lead);
+  border-top: var(--rule-weight) solid var(--rule);
+  border-bottom: var(--rule-weight-strong) solid var(--ink);
+}
+
+/* ---- closing ---- */
+
+.terms {
+  max-width: 168mm;
+  margin-bottom: var(--space-2);
+}
+
+.signature {
+  margin-top: var(--space-2);
+  line-height: var(--leading-tight);
+}
+
+.signature__name {
+  font-weight: 500;
+}
+
+.signature__company {
+  font-size: var(--size-small);
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ---- Swiss QR payment part ----
+ *
+ * Fixed geometry: 210 x 105 mm, flush to the bottom edge of the sheet. The
+ * negative offsets cancel the page margins so the strip bleeds to the paper
+ * edge, which is where the perforation and the bank's scan window expect it.
+ */
+
+.payment-part {
+  width: 210mm;
+  height: 105mm;
+}
+
+.payment-part img {
+  display: block;
+  width: 210mm;
+  height: 105mm;
+}
+
+.payment-part--inline {
+  position: fixed;
+  left: calc(-1 * var(--page-margin-x));
+  bottom: calc(-1 * var(--payment-reserve));
+}
+
+.payment-page {
+  page: payment;
+  break-before: page;
+  height: 297mm;
+  display: flex;
+  align-items: flex-end;
+}

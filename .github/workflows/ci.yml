@@ -1,0 +1,135 @@
+name: CI
+
+# Runs against `example/` only. The private profile does not exist on a runner,
+# and a workflow that needed it would be a workflow that one day leaked it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  linux:
+    name: ubuntu / python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Every version `requires-python` claims to support. A claim nothing
+        # exercises is a claim that is wrong sooner or later.
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # WeasyPrint binds Pango and Cairo through cffi. Without these every
+      # rendering test fails on `cannot load library 'libgobject-2.0-0'`.
+      - name: Install native libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2 poppler-utils
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+
+      # --locked, so a stale uv.lock fails the build rather than being
+      # silently resolved around.
+      - name: Install
+        run: uv sync --locked --all-extras --dev
+
+      - name: Lint
+        run: |
+          uv run ruff check --output-format=github .
+          uv run ruff format --check .
+
+      - name: Types
+        run: uv run mypy
+
+      # The leak guard. On a clone there is no private profile, so this is the
+      # structural layer: anything shaped like an IBAN, a Swiss UID, an email
+      # address or a phone number in a tracked file fails the build.
+      - name: Scan for private values
+        run: uv run python tools/scan.py
+
+      - name: Test
+        run: uv run pytest -q
+
+      - name: Numbering and sanity checks
+        run: uv run billwright check
+
+      - name: Render the example documents
+        run: |
+          uv run billwright bill RE-26001
+          uv run billwright statement 2026
+
+      # So a human can look at a render without cloning anything. Rule 6:
+      # structural checks pass happily while the layout is broken.
+      - name: Upload rendered PDFs
+        if: matrix.python-version == '3.13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-documents
+          path: out/*.pdf
+          if-no-files-found: error
+
+  macos:
+    name: macos / python 3.13
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Worth a separate job: macOS is the platform this is developed on, and
+      # the only one that exercises native.py's dyld repair.
+      - name: Install native libraries
+        run: brew install pango
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.13"
+
+      - name: Install
+        run: uv sync --locked --all-extras --dev
+
+      - name: Test
+        run: make test
+
+      - name: Render the example bill through the CLI
+        run: uv run billwright bill RE-26001
+
+  hooks:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install native libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.13"
+
+      - name: Install
+        run: uv sync --locked --all-extras --dev
+
+      - name: Run every hook over every file
+        run: uv run pre-commit run --all-files --show-diff-on-failure

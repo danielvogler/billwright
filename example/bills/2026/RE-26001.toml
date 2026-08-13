@@ -1,0 +1,35 @@
+# The sample invoice. `billwright bill RE-26001` renders this on a fresh clone
+# with no configuration, because example/ is the fallback profile.
+#
+# Quantities are deliberately awkward — 12.5 + 3.25 + 8 hours — so the tests
+# exercise real Decimal arithmetic rather than round numbers that would hide a
+# rounding bug.
+
+number = "RE-26001"
+date = 2026-01-01
+client = "example-institute"
+language = "de"
+terms_days = 14
+project = "Example Project"
+
+# Settled inside the payment term, so this is 2026 income. Revenue is
+# aggregated by `paid_on`, never by the invoice date — see RE-26002.
+paid_on = 2026-02-10
+
+[[items]]
+description = "Consulting - Strategy"
+quantity = 12.5
+unit = "hours"
+service = "consulting"
+
+[[items]]
+description = "Engineering - Data pipeline"
+quantity = 3.25
+unit = "hours"
+service = "engineering"
+
+[[items]]
+description = "Workshop - Team enablement"
+quantity = 8
+unit = "hours"
+service = "workshop"

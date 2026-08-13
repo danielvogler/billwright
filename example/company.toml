@@ -1,0 +1,41 @@
+# A fictional company, used by the test suite, by CI, and as the profile a fresh
+# clone falls back to so `billwright bill RE-26001` works with no setup.
+#
+# Every value here is invented. The IBAN is the IBAN registry's documentation
+# example for Switzerland: structurally valid, checksum-correct, and not a real
+# account. Never put a real IBAN in this directory.
+#
+# To bill for your own company, copy this directory to `data/` (which is
+# gitignored) and replace the values, or run `billwright init-profile`.
+
+name = "EXAMPLE CONSULTING"
+person = "Dr. Alex Muster"
+email = "billing@example.com"
+website = "example.com"
+legal_form = "Einzelunternehmen"
+
+bank = "Example Bank"
+iban = "CH93 0076 2011 6238 5295 7"
+bic = ""
+
+# Swiss business identification number. Empty is correct for a sole
+# proprietorship that has none; fill it in and it appears in the meta block and
+# on the yearly accounts.
+uid = ""
+
+# Below the CHF 100'000 turnover threshold there is no VAT line. Set
+# vat_registered = true and a rate when that changes; the templates already
+# carry the block.
+vat_registered = false
+vat_rate = "8.1"
+
+default_terms_days = 14
+default_language = "de"
+
+[address]
+name = "EXAMPLE CONSULTING"
+street = "Musterstrasse"
+house_number = "1"
+postal_code = "8001"
+city = "Zürich"
+country = "CH"

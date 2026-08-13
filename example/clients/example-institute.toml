@@ -1,0 +1,22 @@
+# A fictional client. One file per counterparty; the filename is the key a bill
+# refers to with `client = "example-institute"`.
+
+contact = "Prof. Dr. Robin Muster"
+language = "de"
+reference = ""
+
+[address]
+name = "Example Institute"
+lines = ["Prof. Dr. Robin Muster"]
+street = "Beispielweg"
+house_number = "12"
+postal_code = "8006"
+city = "Zürich"
+country = "CH"
+
+# One salutation per language, written out in full rather than assembled from a
+# name and a title. Honorifics do not compose reliably, and a German salutation
+# on an English invoice is exactly the detail a client notices.
+[salutation]
+de = "Sehr geehrter Herr Prof. Dr. Muster,"
+en = "Dear Professor Muster,"

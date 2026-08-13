@@ -1,0 +1,167 @@
+/* Yearly accounts and the figures sheet.
+ *
+ * Same visual system as the invoice, quieter. This document is read by a tax
+ * office, so it optimises for "every number is findable and unambiguous" over
+ * anything else. No QR part, no client block.
+ */
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.head__wordmark {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.head__tagline {
+  font-size: var(--size-micro);
+  color: var(--muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-top: var(--space-1);
+}
+
+.issuer {
+  line-height: var(--leading-tight);
+  font-size: var(--size-small);
+}
+
+.issuer__name {
+  font-weight: 500;
+  font-size: var(--size-body);
+}
+
+.title {
+  font-size: var(--size-title);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-1);
+}
+
+.title-rule {
+  border: 0;
+  border-top: var(--rule-weight-strong) solid var(--accent);
+  width: 22mm;
+  margin: 0 0 var(--space-2) 0;
+}
+
+.subtitle {
+  font-size: var(--size-lead);
+  color: var(--muted);
+  margin-bottom: var(--space-4);
+}
+
+.section {
+  margin-bottom: var(--space-4);
+  break-inside: avoid;
+}
+
+.section__heading {
+  font-size: var(--size-lead);
+  margin-bottom: var(--space-2);
+  padding-bottom: 1.4mm;
+  border-bottom: var(--rule-weight-strong) solid var(--ink);
+}
+
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ledger td {
+  padding: 2mm 0;
+  border-bottom: var(--rule-weight) solid var(--rule);
+}
+
+.ledger td.num {
+  padding-left: var(--space-3);
+  width: 40mm;
+}
+
+.ledger tr.subtotal td {
+  font-weight: 500;
+}
+
+.ledger tr.result td {
+  font-weight: 600;
+  font-size: var(--size-lead);
+  border-top: var(--rule-weight) solid var(--rule);
+  border-bottom: var(--rule-weight-strong) solid var(--ink);
+  padding-top: 2.6mm;
+}
+
+.ledger tr.empty td {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* The sentence that explains a nil year. A table of zeros invites a follow-up
+ * question from the tax office; one sentence answers it in advance. */
+.note {
+  background: var(--accent-faint);
+  border-left: var(--rule-weight-strong) solid var(--accent);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-2);
+  margin-bottom: var(--space-4);
+  max-width: 165mm;
+}
+
+.note p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-basis {
+  font-size: var(--size-small);
+  color: var(--muted);
+  max-width: 165mm;
+  margin-bottom: var(--space-4);
+}
+
+.signature-block {
+  margin-top: var(--space-5);
+  display: flex;
+  gap: var(--space-5);
+  break-inside: avoid;
+}
+
+.signature-block__field {
+  flex: 1;
+  max-width: 70mm;
+}
+
+.signature-block__line {
+  border-top: var(--rule-weight) solid var(--ink);
+  padding-top: 1.5mm;
+  margin-top: var(--space-4);
+  font-size: var(--size-small);
+  color: var(--muted);
+}
+
+/* ---- figures sheet ---- */
+
+.figures {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-4);
+}
+
+.figures td {
+  padding: 2.6mm 0;
+  border-bottom: var(--rule-weight) solid var(--rule);
+}
+
+.figures td.num {
+  width: 45mm;
+  font-size: var(--size-lead);
+  font-weight: 500;
+}
+
+.figures__label small {
+  display: block;
+  color: var(--muted);
+  font-size: var(--size-micro);
+  line-height: 1.35;
+}

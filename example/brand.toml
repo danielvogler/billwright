@@ -1,0 +1,30 @@
+# Visual tokens, injected as CSS custom properties at render time.
+#
+# Deliberately neutral: near-black text, greys, one restrained accent. This is
+# the default look of the tool, so it has to be presentable on its own rather
+# than a placeholder that everyone immediately has to replace.
+#
+# The token names are the contract with the stylesheets. Add tokens freely — the
+# loader passes the whole [colors] table through, so a new one needs no Python
+# change — but do not remove these.
+
+font_family = "Inter"
+font_file = "fonts/Inter-Regular.otf"
+
+[colors]
+ink = "#14171A"
+muted = "#6B7280"
+rule = "#D9DDE1"
+accent = "#2F5C86"
+accent-soft = "#DCE6EF"
+accent-faint = "#F1F5F9"
+paper = "#FFFFFF"
+
+# No drawn mark: the logo is two lines of the brand font with an accent-coloured
+# period. Typeset rather than embedded, so it stays sharp at any size and in step
+# with the rest of the document. Omit the whole table for no wordmark at all.
+[wordmark]
+line1 = "EXAMPLE"
+line2 = "CONSULTING"
+dot = "."
+tagline = "example.com"

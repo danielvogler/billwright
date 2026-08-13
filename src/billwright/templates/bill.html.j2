@@ -1,0 +1,156 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ company.name }} — {{ text.invoice }} {{ bill.number }}{% endblock %}
+
+{% block body %}
+<div class="running-footer">
+  {{ company.name }}
+  {%- if company.address %} | {{ company.address.street_line }}, {{ company.address.city_line }}, {{ company.address.country }}{% endif %}
+  {%- if company.email %} | {{ company.email }}{% endif %}
+  {%- if company.bank %} | {{ company.bank }}{% endif %}
+  {%- if company.iban %} | IBAN {{ company.iban }}{% endif %}
+  {%- if company.bic %} | BIC {{ company.bic }}{% endif %}
+</div>
+
+<div class="sheet {% if payment_layout == 'inline' %}sheet--reserved{% endif %}">
+
+  {# The wordmark stands alone. The company address appears twice already —
+     in the sender line for the envelope window, and in the running footer —
+     so a third copy in the letterhead is redundant and costs vertical space
+     the payment part needs. #}
+  {# No tagline on an invoice: the URL is decoration here, and the sheet needs
+     the millimetres for the payment part. The statement keeps it. #}
+  {% set show_tagline = false %}
+  <header class="head">
+    <div>{% include "_wordmark.html.j2" %}</div>
+    {# The sheet carrying the payment part has no room for a running footer, so
+       the contact details live here instead. Bank details are deliberately not
+       repeated: the payment part below carries them, and two copies that could
+       disagree is worse than one that cannot. #}
+    <div class="head__contact">
+      {% if company.email %}<div>{{ company.email }}</div>{% endif %}
+      {% if company.phone %}<div>{{ company.phone }}</div>{% endif %}
+      {% if company.website %}<div>{{ company.website }}</div>{% endif %}
+    </div>
+  </header>
+
+  <div class="sender-line">
+    {{ company.person }} · {{ company.address.street_line }} · {{ company.address.city_line }} · {{ company_country }}
+  </div>
+
+  <div class="address-row">
+    <div class="recipient">
+      <div class="recipient__name">{{ bill.client.address.name }}</div>
+      {% for line in bill.client.address.lines %}
+        <div>{{ line }}</div>
+      {% endfor %}
+      <div>{{ bill.client.address.street_line }}</div>
+      <div>{{ bill.client.address.city_line }}</div>
+      <div>{{ client_country }}</div>
+    </div>
+
+    <div class="meta">
+      <div class="meta__row">
+        <span class="muted">{{ text.date }}</span>
+        <span>{{ issued_short }}</span>
+      </div>
+      <div class="meta__row meta__row--strong">
+        <span>{{ text.invoice_number }}</span>
+        <span>{{ bill.number }}</span>
+      </div>
+      {% if bill.client.reference %}
+        <div class="meta__row">
+          <span class="muted">Ref.</span>
+          <span>{{ bill.client.reference }}</span>
+        </div>
+      {% endif %}
+      {% if company.uid %}
+        <div class="meta__row">
+          <span class="muted">UID</span>
+          <span>{{ company.uid }}</span>
+        </div>
+      {% endif %}
+      <div class="meta__note">{{ text.service_date_note }}</div>
+    </div>
+  </div>
+
+  <h1 class="title">{{ text.invoice }}</h1>
+  <hr class="title-rule" />
+
+  <p class="intro">
+    {{ salutation }}<br />
+    {{ text.intro }}
+  </p>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th>{{ text.position }}</th>
+        <th class="num">{{ text.quantity }}</th>
+        <th class="items__unit">{{ text.unit }}</th>
+        <th class="items__description">{{ text.description }}</th>
+        <th class="num">{{ text.unit_price }}</th>
+        <th class="num">{{ text.line_total }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in bill.items %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td class="num">{{ item.quantity | qty }}</td>
+          <td class="items__unit">{{ language | unit(item.unit) }}</td>
+          <td class="items__description">{{ item.description }}</td>
+          <td class="num">{{ item.unit_price | chf }}</td>
+          <td class="num">{{ item.total | chf }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <table class="totals__table">
+      <tr>
+        <td class="muted">{{ text.net }}</td>
+        <td class="num">{{ bill.net | chf }}</td>
+      </tr>
+      {% if vat_amount is not none %}
+        <tr>
+          <td class="muted">{{ text.vat }} {{ vat_rate }}%</td>
+          <td class="num">{{ vat_amount | chf }}</td>
+        </tr>
+      {% endif %}
+      <tr class="totals__row--grand">
+        <td>{{ text.total }}</td>
+        <td class="num">{{ total | chf }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="terms">
+    <p>{{ text.terms.format(days=bill.terms_days) }}</p>
+    <p>{{ text.questions }}</p>
+    {% if bill.note %}
+      <p>{{ bill.note }}</p>
+    {% endif %}
+  </div>
+
+  <div class="signature">
+    <div>{{ text.closing }}</div>
+    <div class="signature__name">{{ company.person }}</div>
+    <div class="signature__company">{{ company.name }}</div>
+  </div>
+
+  {% if payment_layout == 'inline' %}
+    <div class="payment-part payment-part--inline">
+      <img src="{{ qr_svg }}" alt="Swiss QR bill payment part" />
+    </div>
+  {% endif %}
+</div>
+
+{% if payment_layout == 'separate' %}
+  <div class="payment-page">
+    <div class="payment-part">
+      <img src="{{ qr_svg }}" alt="Swiss QR bill payment part" />
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

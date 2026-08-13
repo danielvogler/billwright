@@ -1,0 +1,30 @@
+# The year-boundary case, in the profile rather than only in a test.
+#
+# Issued in December 2026, paid in January 2027. Under the receipts and
+# payments basis (OR Art. 957 II) it is *2027* income: it does not appear in
+# the 2026 accounts at all, and `billwright statement 2027` picks it up even
+# though the file lives under bills/2026/.
+#
+# Getting this wrong moves revenue between tax years, so the example profile
+# demonstrates it: `make statement YEAR=2026` and `YEAR=2027` differ by this
+# invoice alone.
+
+number = "RE-26002"
+date = 2026-12-18
+client = "example-institute"
+language = "de"
+terms_days = 30
+project = "Example Project"
+paid_on = 2027-01-14
+
+[[items]]
+description = "Consulting - Year-end review"
+quantity = 6.5
+unit = "hours"
+service = "consulting"
+
+[[items]]
+description = "Engineering - Pipeline handover"
+quantity = 2.75
+unit = "hours"
+service = "engineering"

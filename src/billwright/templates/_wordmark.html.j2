@@ -1,0 +1,16 @@
+{#
+  The wordmark, typeset from brand.toml.
+
+  Structure comes from the brand profile so a second company supplies its own
+  two lines (or one) without editing this file. The accent-coloured period is
+  the whole mark — there is no drawn logo to embed.
+#}
+<div class="wordmark">
+  {% if brand.wordmark.line1 %}
+    <div>{{ brand.wordmark.line1 }}</div>
+  {% endif %}
+  <div>{{ brand.wordmark.line2 }}<span class="dot">{{ brand.wordmark.dot | default('.', true) }}</span></div>
+</div>
+{% if brand.wordmark.tagline and show_tagline | default(true) %}
+  <div class="head__tagline">{{ brand.wordmark.tagline }}</div>
+{% endif %}

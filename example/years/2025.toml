@@ -1,0 +1,11 @@
+# 2025 — a nil year, kept in the example profile because it is the case most
+# likely to be got wrong.
+#
+# A year with no mandates is a statement of zeros, not an absence of a statement.
+# `expenses`, `assets` and `liabilities` are deliberately absent rather than
+# listed as zeros: the templates render the nil case explicitly, and the note
+# below says why in words. A bare table of zeros invites a follow-up question;
+# one sentence answers it in advance.
+
+place = "Zürich"
+prepared_on = 2026-01-31

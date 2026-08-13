@@ -1,0 +1,110 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ company.name }} — {{ text.statement }} {{ statement.year }}{% endblock %}
+
+{#
+  Four ledger blocks with identical structure. When a block has detail lines it
+  shows them and then a subtotal; when it has none, the subtotal row IS the
+  answer and carries the "no entries" label — printing "Aufwand — Keine
+  Positionen 0.00" above "Aufwand 0.00" says the same thing twice, which reads
+  like padding on a document a tax office will scan.
+#}
+{% macro ledger(label, lines, total) %}
+  <table class="ledger">
+    <tbody>
+      {% if lines %}
+        {% for line_label, amount in lines %}
+          <tr>
+            <td>{{ line_label }}</td>
+            <td class="num">{{ amount | chf }}</td>
+          </tr>
+        {% endfor %}
+        <tr class="subtotal">
+          <td>{{ label }}</td>
+          <td class="num">{{ total | chf }}</td>
+        </tr>
+      {% else %}
+        <tr class="subtotal empty">
+          <td>{{ label }} — {{ text.no_entries }}</td>
+          <td class="num">{{ total | chf }}</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+{% endmacro %}
+
+{% block body %}
+<div class="running-footer">
+  {{ company.name }}
+  {%- if company.address %} | {{ company.address.street_line }}, {{ company.address.city_line }}{% endif %}
+  {%- if company.email %} | {{ company.email }}{% endif %}
+  {%- if company.uid %} | {{ company.uid }}{% endif %}
+</div>
+
+<header class="head">
+  <div class="issuer">
+    <div class="issuer__name">{{ company.name }}</div>
+    <div>{{ company.person }}</div>
+    <div>{{ company.address.street_line }}</div>
+    <div>{{ company.address.city_line }}</div>
+    <div>{{ company_country }}</div>
+    {% if company.legal_form %}
+      <div class="muted">{{ company.legal_form }}</div>
+    {% endif %}
+    {% if company.uid %}
+      <div class="muted">{{ company.uid }}</div>
+    {% endif %}
+  </div>
+  <div class="head__wordmark">{% include "_wordmark.html.j2" %}</div>
+</header>
+
+<h1 class="title">{{ text.statement }} {{ statement.year }}</h1>
+<hr class="title-rule" />
+<div class="subtitle">{{ text.period }}: 01.01.{{ statement.year }} – 31.12.{{ statement.year }}</div>
+
+{% if statement.note %}
+  <div class="note">
+    <p>{{ statement.note }}</p>
+  </div>
+{% endif %}
+
+<section class="section">
+  <h2 class="section__heading">{{ text.income_statement }}</h2>
+  {{ ledger(text.revenue, statement.revenue_lines, statement.revenue) }}
+  {{ ledger(text.expenses, statement.expense_pairs, statement.expenses) }}
+  <table class="ledger">
+    <tbody>
+      <tr class="result">
+        <td>{{ text.result }}</td>
+        <td class="num">{{ statement.profit | chf }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="section">
+  <h2 class="section__heading">{{ text.net_worth.format(year=statement.year) }}</h2>
+  {{ ledger(text.assets, statement.assets, statement.total_assets) }}
+  {{ ledger(text.liabilities, statement.liabilities, statement.total_liabilities) }}
+  <table class="ledger">
+    <tbody>
+      <tr class="result">
+        <td>{{ text.equity }}</td>
+        <td class="num">{{ statement.equity | chf }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<p class="legal-basis">{{ text.legal_basis }}</p>
+
+<div class="signature-block">
+  <div class="signature-block__field">
+    <div class="signature-block__line">
+      {{ text.place_date }}: {{ statement.place }}, {{ prepared_short }}
+    </div>
+  </div>
+  <div class="signature-block__field">
+    <div class="signature-block__line">{{ text.signature }}: {{ company.person }}</div>
+  </div>
+</div>
+{% endblock %}

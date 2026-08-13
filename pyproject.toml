@@ -1,0 +1,81 @@
+[project]
+name = "billwright"
+version = "0.1.0"
+description = "Invoices and year-end accounts, typeset as PDFs from plain TOML"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Daniel Vogler" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial :: Accounting",
+    "Topic :: Text Processing :: Markup :: HTML",
+]
+dependencies = [
+    "jinja2>=3.1",
+    "pydantic>=2.7",
+    "qrbill>=1.2",
+    "weasyprint>=66",
+]
+
+[project.scripts]
+billwright = "billwright.main:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-cov", "ruff>=0.6", "pypdf>=4", "mypy>=1.11", "pre-commit>=3.8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/billwright"]
+
+[tool.billwright]
+# The active company profile. Everything company-specific lives under data/ and
+# assets/; the package itself holds no company facts at all. Point this at a
+# different directory to bill for a different company from the same engine.
+# See skills/README.md for the split.
+#
+# This is a candidate, not a demand: it is used only if it holds company.toml,
+# so a clone with no profile of its own falls through to example/ and renders
+# the sample. --profile and $BILLWRIGHT_PROFILE take precedence and are strict.
+profile = "data"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+# Ruff formats Python code blocks inside Markdown. The snippets in AGENTS.md and
+# skills/ are illustrative — the colour-conversion matrix is aligned on purpose,
+# and reformatting it to one-operator-per-space makes it harder to check against
+# the OKLab reference. Prose is documentation, not code held to this style.
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src"]
+disallow_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+warn_unused_configs = true
+
+# Neither `qrbill` nor `weasyprint` ships type information. Scoped to that package rather than a
+# blanket ignore_missing_imports, so a genuinely missing stub elsewhere still
+# shows up.
+[[tool.mypy.overrides]]
+module = ["qrbill.*", "weasyprint.*"]
+ignore_missing_imports = true

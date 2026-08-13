@@ -1,0 +1,41 @@
+# Runs before a commit is created, rather than telling you about it afterwards.
+# Install once with `make hooks`; `make check` runs the same set over every file.
+#
+# mypy and the leak scan are `local` hooks on purpose: both need the project's
+# own environment (its dependencies, its profile), and a hook running in an
+# isolated venv would either fail to import weasyprint or scan with no profile
+# at all — passing for the wrong reason, which is worse than failing.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.5
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: scan
+        name: scan for private values in tracked files
+        entry: uv run python tools/scan.py
+        language: system
+        pass_filenames: false
+        always_run: true

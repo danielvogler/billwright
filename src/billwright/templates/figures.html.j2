@@ -1,0 +1,81 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ company.name }} — {{ text.figures_title.format(year=statement.year) }}{% endblock %}
+
+{#
+  The transcription aid: one page, one value per labelled line, ready to be
+  typed into the tax return. Deliberately plain — it is a worksheet, not a
+  document, and its labels should be matched to the real form.
+#}
+{% block body %}
+<div class="running-footer">
+  {{ company.name }} | {{ text.figures_title.format(year=statement.year) }}
+</div>
+
+<header class="head">
+  <div class="issuer">
+    <div class="issuer__name">{{ company.name }}</div>
+    <div>{{ company.person }}</div>
+    <div>{{ company.address.street_line }}, {{ company.address.city_line }}</div>
+    {% if company.legal_form %}
+      <div class="muted">{{ company.legal_form }}</div>
+    {% endif %}
+  </div>
+  <div class="head__wordmark">{% include "_wordmark.html.j2" %}</div>
+</header>
+
+<h1 class="title">{{ text.figures_title.format(year=statement.year) }}</h1>
+<hr class="title-rule" />
+<p class="legal-basis">{{ text.figures_intro }}</p>
+
+<table class="figures">
+  <tbody>
+    <tr>
+      <td class="figures__label">
+        {{ text.revenue }} {{ statement.year }}
+        <small>{{ text.revenue_consulting }}</small>
+      </td>
+      <td class="num">{{ statement.revenue | chf }}</td>
+    </tr>
+    <tr>
+      <td class="figures__label">
+        {{ text.expenses }} {{ statement.year }}
+        {% if statement.expense_lines %}<small>{{ statement.expense_lines | length }} {{ text.entries }}</small>{% endif %}
+      </td>
+      <td class="num">{{ statement.expenses | chf }}</td>
+    </tr>
+    <tr>
+      <td class="figures__label">
+        <strong>{{ text.result }} {{ statement.year }}</strong>
+        <small>{{ text.revenue }} − {{ text.expenses }}</small>
+      </td>
+      <td class="num">{{ statement.profit | chf }}</td>
+    </tr>
+    <tr>
+      <td class="figures__label">
+        {{ text.assets }} 31.12.{{ statement.year }}
+      </td>
+      <td class="num">{{ statement.total_assets | chf }}</td>
+    </tr>
+    <tr>
+      <td class="figures__label">
+        {{ text.liabilities }} 31.12.{{ statement.year }}
+      </td>
+      <td class="num">{{ statement.total_liabilities | chf }}</td>
+    </tr>
+    <tr>
+      <td class="figures__label">
+        <strong>{{ text.equity }} 31.12.{{ statement.year }}</strong>
+      </td>
+      <td class="num">{{ statement.equity | chf }}</td>
+    </tr>
+  </tbody>
+</table>
+
+{% if statement.note %}
+  <div class="note">
+    <p>{{ statement.note }}</p>
+  </div>
+{% endif %}
+
+<p class="legal-basis">{{ text.legal_basis }}</p>
+{% endblock %}

@@ -1,0 +1,47 @@
+# 2026 — a year with actual figures, so the example profile demonstrates a real
+# statement and not only the nil case in 2025.toml.
+#
+# Revenue is not here, and must never be: it is aggregated from the bills that
+# were *paid* in 2026, so the figure the tax office sees cannot drift from the
+# invoices behind it. Only what the bills cannot know is recorded here —
+# expenses, and the balance figures at 31.12.
+#
+# RE-26002 was issued in December 2026 and paid in January 2027, so it is 2027
+# income and is deliberately absent from these accounts.
+
+place = "Zürich"
+prepared_on = 2027-01-31
+
+[[expenses]]
+description = "Sozialversicherungen (AHV/IV/EO)"
+amount = "512.40"
+
+[[expenses]]
+description = "Berufshaftpflichtversicherung"
+amount = "486.00"
+
+[[expenses]]
+description = "Software-Abonnemente und Hosting"
+amount = "1274.55"
+
+[[expenses]]
+description = "Fachliteratur und Weiterbildung"
+amount = "890.00"
+
+[[expenses]]
+description = "Büromaterial und Porti"
+amount = "163.75"
+
+[[assets]]
+description = "Geschäftskonto per 31.12.2026"
+amount = "6218.30"
+
+# RE-26002, issued 18.12.2026 and still open at the year end. Not revenue in
+# 2026 — it is a receivable here and 2027 income when it is paid.
+[[assets]]
+description = "Forderungen aus Lieferungen und Leistungen"
+amount = "1795.00"
+
+[[liabilities]]
+description = "Noch nicht bezahlte Sozialversicherungsbeiträge"
+amount = "212.40"

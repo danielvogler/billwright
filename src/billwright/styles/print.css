@@ -1,0 +1,67 @@
+/* Page geometry.
+ *
+ * A4, with a running footer carrying the company one-liner. The Swiss QR
+ * payment part occupies the bottom 105 mm of the sheet it sits on, so the page
+ * that carries it reserves that space up front — content must never run into
+ * the payment part, which is a fixed-geometry object the bank's scanner reads.
+ */
+
+@page {
+  size: A4;
+  margin: var(--page-margin-top) var(--page-margin-x) var(--page-margin-bottom);
+
+  @bottom-center {
+    content: element(runningFooter);
+  }
+}
+
+/* The sheet that carries the payment part: reserve 105 mm plus a 12 mm gap so
+ * the perforation line has air above it. */
+@page reserved {
+  margin-bottom: var(--payment-reserve);
+
+  @bottom-center {
+    content: none;
+  }
+}
+
+/* A payment part delivered on its own sheet — the fallback when the invoice
+ * body runs past one page. Full bleed, no margins, no footer. */
+@page payment {
+  margin: 0;
+
+  @bottom-center {
+    content: none;
+  }
+}
+
+.running-footer {
+  position: running(runningFooter);
+  font-size: var(--size-micro);
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.01em;
+  padding-top: var(--space-1);
+  border-top: var(--rule-weight) solid var(--rule);
+  width: 100%;
+}
+
+.page-number::after {
+  content: counter(page) ' / ' counter(pages);
+}
+
+/* Never split a table row or leave a heading stranded at a page foot. */
+tr,
+.no-break {
+  break-inside: avoid;
+}
+
+thead {
+  display: table-header-group;
+}
+
+h1,
+h2,
+h3 {
+  break-after: avoid;
+}

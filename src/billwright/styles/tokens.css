@@ -1,0 +1,103 @@
+/* Shared type and spacing scale.
+ *
+ * Colour tokens are NOT here — they are injected from the profile's brand.toml
+ * so a second company changes a data file, not this stylesheet.
+ *
+ * Never introduce a raw colour or a one-off size below. If a value looks like it
+ * needs a new token, it almost always needs an existing one.
+ */
+
+:root {
+  --page-margin-x: 20mm;
+  --page-margin-top: 18mm;
+  --page-margin-bottom: 18mm;
+
+  /* Space reserved at the foot of the sheet carrying the Swiss QR payment part:
+   * its fixed 105 mm plus a 6 mm breathing gap above the perforation line.
+   * print.css reserves it as page margin; bill.css offsets the strip by the
+   * same amount to bleed it to the paper edge. Change it in one place. */
+  --payment-reserve: 111mm;
+
+  /* Type scale, in points, because this medium is paper. */
+  --size-micro: 7pt;
+  --size-small: 8pt;
+  --size-body: 9.5pt;
+  --size-lead: 11pt;
+  --size-title: 17pt;
+  --size-wordmark: 15pt;
+
+  --leading-tight: 1.25;
+  --leading-body: 1.45;
+
+  /* Tight on purpose. A bill has to fit its content AND the 105 mm payment
+   * part on one sheet — that is the constraint the whole scale is built to,
+   * and it is why these are smaller than they would be for a report. */
+  --space-1: 2mm;
+  --space-2: 3mm;
+  --space-3: 4.5mm;
+  --space-4: 6mm;
+  --space-5: 10mm;
+
+  --rule-weight: 0.4pt;
+  --rule-weight-strong: 1pt;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: var(--size-body);
+  line-height: var(--leading-body);
+  color: var(--ink);
+  /* White paper on purpose. The site's warm `paper` tone is right on a screen
+   * and wrong on A4: it floods an inkjet and scans badly. The brand lives in
+   * the accent rule and the wordmark instead. */
+  background: #ffffff;
+  margin: 0;
+  font-feature-settings: 'ss01', 'cv11', 'tnum';
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  margin: 0;
+}
+
+p {
+  margin: 0 0 var(--space-2) 0;
+}
+
+/* Tabular figures everywhere money appears, so columns of numbers line up. */
+.num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+/* The wordmark is typeset, not an image: the brand logo is literally two lines
+ * of Inter Medium with a red period. Setting it in CSS keeps it sharp at any
+ * size and keeps it in step with the rest of the document automatically. */
+.wordmark {
+  font-weight: 500;
+  font-size: var(--size-wordmark);
+  line-height: 1.05;
+  letter-spacing: -0.06em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.wordmark .dot {
+  color: var(--accent);
+}

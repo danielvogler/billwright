@@ -1,0 +1,9 @@
+# Service categories and their hourly rate. A bill line names a `service` and the
+# rate is looked up here, so changing a price is one edit in one place — and
+# bills already issued keep the price they were rendered with, because the
+# rendered PDF is the record.
+
+[hourly]
+consulting = "200.00"
+engineering = "180.00"
+workshop = "250.00"

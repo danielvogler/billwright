@@ -23,9 +23,25 @@ dependencies = [
 
 [project.scripts]
 billwright = "billwright.main:main"
+# Optional, and only useful with the `mcp` extra installed. An MCP client
+# launches this over stdio; see README "Serving it over MCP".
+billwright-mcp = "billwright.mcp_server:main"
+
+[project.optional-dependencies]
+mcp = [
+    "fastmcp>=2.0",
+]
 
 [dependency-groups]
-dev = ["pytest>=8", "pytest-cov", "ruff>=0.6", "pypdf>=4", "mypy>=1.11", "pre-commit>=3.8"]
+dev = [
+    "pytest>=8",
+    "pytest-cov",
+    "ruff>=0.6",
+    "pypdf>=4",
+    "mypy>=1.11",
+    "pre-commit>=3.8",
+    "fastmcp>=2.0",
+]
 
 [build-system]
 requires = ["hatchling"]

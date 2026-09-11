@@ -4,6 +4,36 @@ All notable changes to this project. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **An optional MCP server**, `billwright[mcp]`, run as `billwright-mcp`. It
+  exists for the one case a shell cannot cover: an agent with no terminal, in a
+  chat client or on a schedule, that still has to issue a bill. The command line
+  remains the way in.
+
+  It restates nothing — `AGENTS.md` is served verbatim as the
+  `billwright://agents` resource rather than paraphrased into tool descriptions,
+  because the paraphrase is the copy that goes stale. It computes nothing: every
+  figure comes from the same loaders and the same `money.py` the CLI uses. And
+  it names the company it is billing as in every response, because a chat client
+  shows no working directory to notice the wrong profile from.
+
+- `paths.py`, holding the naming and target-directory rules for rendered
+  documents. Two callers spelling the same invoice differently is how an archive
+  stops being a series.
+
+- `audit.py`, holding the numbering audit that `billwright check` prints. Two
+  implementations of "is the numbering sound" would eventually disagree about a
+  real invoice.
+
+### Changed
+
+- `bill_template` moved from `main.py` to `scaffold.py`, so the CLI and the MCP
+  server scaffold byte-identical bills.
+- A logo and an architecture diagram in the README.
+
 ## [0.1.0] — 2026-08-13
 
 First release: a generic engine that renders Swiss invoices and year-end

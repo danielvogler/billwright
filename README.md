@@ -1,19 +1,19 @@
-<h1 align="center">Billwright.</h1>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img alt="billwright — invoices your client pays by scanning, and the year-end accounts to match" src="docs/assets/banner-light.svg">
+</picture>
 
-<p align="center">
-  <strong>Swiss invoices your client can pay by scanning, and the year-end accounts to match.</strong><br>
-  Tell a coding agent about your company once. Get PDFs you can send to a client<br>
-  and hand to the tax office — no subscription, no account, no server.
-</p>
+[![CI](https://github.com/danielvogler/billwright/actions/workflows/ci.yml/badge.svg)](https://github.com/danielvogler/billwright/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0E0E10.svg)](./LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-0E0E10.svg)](https://www.python.org/downloads/)
+[![uv](https://img.shields.io/badge/deps-uv-0E0E10.svg)](https://docs.astral.sh/uv/)
+[![Ruff](https://img.shields.io/badge/lint-ruff-0E0E10.svg)](https://docs.astral.sh/ruff/)
+[![mypy](https://img.shields.io/badge/types-checked-0E0E10.svg)](https://mypy-lang.org/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-0E0E10.svg)](https://pre-commit.com/)
 
-<p align="center">
-  <a href="https://github.com/danielvogler/billwright/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/danielvogler/billwright/actions/workflows/ci.yml/badge.svg"></a>
-  <img alt="Python 3.11 to 3.14" src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB?logo=python&logoColor=white">
-  <a href="LICENSE"><img alt="Apache 2.0" src="https://img.shields.io/badge/licence-Apache--2.0-2F5C86"></a>
-  <a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json"></a>
-  <img alt="Checked with mypy" src="https://img.shields.io/badge/mypy-checked-2F5C86">
-  <a href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-2F5C86?logo=pre-commit&logoColor=white"></a>
-</p>
+**Swiss invoices your client can pay by scanning, and the year-end accounts to
+match.** Tell a coding agent about your company once. Get PDFs you can send to a
+client and hand to the tax office — no subscription, no account, no server.
 
 <p align="center">
   <img src="docs/example-invoice.png" alt="A rendered invoice: wordmark, line items, computed total, and the Swiss QR payment part at the foot" width="380">
@@ -135,6 +135,84 @@ nothing anywhere.
 
 ---
 
+## How it works
+
+Two halves that never mix: a profile of company facts, and an engine that holds
+none of them. Everything a tax inspector might question — the total, the
+scanned amount, which year a franc belongs to — is derived on the way through,
+not stored anywhere it could be edited into disagreeing with itself.
+
+```mermaid
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#FFFFFF","primaryTextColor":"#202124","primaryBorderColor":"#DADCE0","lineColor":"#5F6368","secondaryColor":"#F8F9FA","tertiaryColor":"#F8F9FA","mainBkg":"#FFFFFF","nodeBorder":"#DADCE0","clusterBkg":"#F8F9FA","clusterBorder":"#DADCE0","titleColor":"#5F6368","edgeLabelBackground":"#FFFFFF"},"flowchart":{"curve":"basis","nodeSpacing":40,"rankSpacing":64,"padding":14,"useMaxWidth":true}} }%%
+flowchart LR
+    subgraph P["Your profile"]
+        direction TB
+        PC("company.toml<br/>address · IBAN · VAT status")
+        PB("brand.toml<br/>colours · wordmark")
+        PR("rates.toml · clients/")
+        PI("bills/2026/RE-26002.toml<br/>line items, and no total")
+        PY("years/2026.toml<br/>expenses · balances")
+    end
+
+    subgraph E["src/billwright — holds no company value"]
+        direction TB
+        L("load · validate<br/>frozen Pydantic models")
+        M("money<br/>Decimal — totals computed, never stored")
+        Q("qr<br/>Swiss QR payload, built from the bill itself")
+        S("statement<br/>revenue by paid_on, not by invoice date")
+        R("render<br/>Jinja2 → WeasyPrint")
+    end
+
+    subgraph D["Documents"]
+        direction TB
+        DI("Invoice PDF<br/>with the QR payment part")
+        DJ("Jahresrechnung PDF")
+        DK("Kennzahlen PDF")
+    end
+
+    A("archive/<br/>the ten-year record, OR Art. 958f")
+
+    PC --> L
+    PB --> L
+    PR --> L
+    PI --> L
+    PY --> L
+
+    L --> M
+    M --> Q
+    M --> S
+    Q --> R
+    S --> R
+
+    R --> DI
+    R --> DJ
+    R --> DK
+
+    DI --> A
+    DJ --> A
+
+    classDef card fill:#FFFFFF,stroke:#DADCE0,stroke-width:1px,color:#202124,rx:6,ry:6
+    classDef key fill:#E8F0FE,stroke:#1A73E8,stroke-width:1.5px,color:#174EA6,rx:6,ry:6
+    classDef record fill:#E6F4EA,stroke:#1E8E3E,stroke-width:1.5px,color:#137333,rx:6,ry:6
+
+    class PC,PB,PR,PI,PY,L,R,DI,DJ,DK card
+    class M,Q,S key
+    class A record
+
+    style P fill:#F8F9FA,stroke:#DADCE0,stroke-width:1px,color:#5F6368
+    style E fill:#F8F9FA,stroke:#DADCE0,stroke-width:1px,color:#5F6368
+    style D fill:#F8F9FA,stroke:#DADCE0,stroke-width:1px,color:#5F6368
+
+    linkStyle default stroke:#5F6368,stroke-width:1.2px
+```
+
+The arrow that matters is `money → qr`: the figure your client scans is the one
+computed from the line items, so the payment part cannot disagree with the
+invoice printed above it. The same applies to `statement` — revenue is summed
+from bills marked paid, never typed into the accounts by hand.
+
+---
+
 ## Setup
 
 **Required**: Python 3.11+, [uv](https://docs.astral.sh/uv/), and WeasyPrint's
@@ -252,6 +330,46 @@ uv run billwright statement 2026 --language en
 
 ---
 
+## Serving it over MCP
+
+Optional, and not the way in. An agent with a terminal already has everything —
+`AGENTS.md` and the command line above are the full interface, and that is the
+path this repository is written for.
+
+The case this covers is the one a shell cannot: an agent with **no terminal** —
+a chat client, or something running on a schedule — that still has to issue a
+bill.
+
+```bash
+uv sync --extra mcp
+billwright-mcp --profile data        # stdio, launched by your MCP client
+```
+
+Eight tools, one per thing the CLI already does: `profile_info`, `list_bills`,
+`show_bill`, `new_bill`, `bill`, `statement`, `check_bills`, `check_profile`.
+
+Three things are worth knowing about it, because they are why it is safe to
+have:
+
+- **It restates nothing.** `AGENTS.md` is served verbatim as the
+  `billwright://agents` resource rather than paraphrased into tool descriptions.
+  A second copy of the rules would drift, and the copy the agent reads would be
+  the stale one.
+- **It computes nothing.** Every figure comes from the same loaders and the same
+  exact-decimal arithmetic the command line uses, so a bill rendered over MCP is
+  the same file as one rendered from the shell.
+- **It says which company it is billing as, every time.** The profile is
+  resolved once at startup and named in every response. A terminal shows you a
+  working directory; a chat window shows you nothing, and billing under the
+  wrong company is worse than not billing.
+
+`archive=True` is a parameter on `bill` and `statement`, exactly as `--archive`
+is a flag on the CLI. It writes the permanent ten-year copy, so it is a separate
+decision from rendering a draft — and your MCP client will show you the argument
+before it runs.
+
+---
+
 ## How it is organised
 
 ```
@@ -261,6 +379,7 @@ src/billwright/   the generator. Contains no company values at all.
 assets/           vendored Inter
 archive/          issued PDFs, the ten-year record (gitignored)
 skills/           agent-facing guidance for building and extending this
+docs/             README images — the banner and the example renders
 out/              scratch renders (gitignored)
 ```
 

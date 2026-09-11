@@ -10,16 +10,14 @@ from pathlib import Path
 
 from .model import Brand, Company
 from .native import ensure_native_libraries
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_ASSETS = REPO_ROOT / "assets"
-DEFAULT_OUT = REPO_ROOT / "out"
-ARCHIVE = REPO_ROOT / "archive"
-
-
-def _slug(text: str) -> str:
-    keep = [c if c.isalnum() else "_" for c in text]
-    return "".join(keep).strip("_").replace("__", "_")
+from .paths import (
+    DEFAULT_ASSETS,
+    DEFAULT_OUT,
+    REPO_ROOT,
+    bill_target,
+    statement_dir,
+    statement_stem,
+)
 
 
 def _profile(args: argparse.Namespace) -> Path:
@@ -44,8 +42,7 @@ def cmd_bill(args: argparse.Namespace) -> int:
     if args.language:
         bill = bill.model_copy(update={"language": args.language})
 
-    filename = f"{_slug(company.name)}_-_{bill.number}.pdf"
-    target = (ARCHIVE / "bills" / str(bill.year) if args.archive else Path(args.out)) / filename
+    target = bill_target(company, bill, archive=args.archive, out=Path(args.out))
 
     result = render_bill(bill, company, brand, Path(args.assets), target, not args.no_qr, profile)
     print(f"{result.path}  ({result.pages} page(s), payment part: {result.payment_layout})")
@@ -68,8 +65,8 @@ def cmd_statement(args: argparse.Namespace) -> int:
         profile, args.year, company, language=args.language, place=args.place
     )
 
-    out_dir = ARCHIVE / "statements" / str(args.year) if args.archive else Path(args.out)
-    stem = f"{_slug(company.name)}_-_Jahresrechnung_{args.year}"
+    out_dir = statement_dir(args.year, archive=args.archive, out=Path(args.out))
+    stem = statement_stem(company, args.year)
 
     targets = [(f"{stem}.pdf", "statement.html.j2")]
     if not args.no_figures:
@@ -94,6 +91,7 @@ def cmd_statement(args: argparse.Namespace) -> int:
 def cmd_new(args: argparse.Namespace) -> int:
     from .load import bill_paths, load_client, load_rates
     from .numbering import next_number
+    from .scaffold import bill_template
 
     profile = _profile(args)
     company, _ = _load_context(profile)
@@ -110,45 +108,9 @@ def cmd_new(args: argparse.Namespace) -> int:
         return 1
 
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(_bill_template(str(number), client.key, company, rates), encoding="utf-8")
+    target.write_text(bill_template(str(number), client.key, company, rates), encoding="utf-8")
     print(f"{target}\nEdit the items, then: billwright bill {number}")
     return 0
-
-
-def _bill_template(number: str, client_key: str, company: Company, rates: dict) -> str:
-    """A scaffold that renders as written.
-
-    The service name comes from the profile's own rates. Hardcoding one here
-    put a company's service category in the engine and, worse, scaffolded a
-    bill that failed on 'unknown service' the first time a new user ran it —
-    the very first command after setting up a profile.
-    """
-    known = sorted(rates)
-    if known:
-        priced = f'service = "{known[0]}"'
-        options = f"# services in this profile: {', '.join(known)}"
-    else:
-        # No rates.toml: price the line directly rather than name a rate that
-        # does not exist.
-        priced = 'unit_price = "0.00"'
-        options = "# no rates.toml in this profile, so the price is on the line"
-
-    return f'''# {number}
-number = "{number}"
-date = {date.today().isoformat()}
-client = "{client_key}"
-language = "{company.default_language}"
-terms_days = {company.default_terms_days}
-project = ""
-
-# `service` looks the rate up in rates.toml; `unit_price` overrides it.
-{options}
-[[items]]
-description = ""
-quantity = 0.0
-unit = "hours"
-{priced}
-'''
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -178,48 +140,20 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 
 def cmd_check(args: argparse.Namespace) -> int:
-    from .load import bill_paths, load_bills, load_expenses
-    from .numbering import find_duplicates, find_gaps
+    from .audit import audit
 
-    profile = _profile(args)
-    numbers = [path.stem for path in bill_paths(profile)]
-    problems = 0
+    report = audit(_profile(args))
 
-    duplicates = find_duplicates(numbers)
-    if duplicates:
-        problems += 1
-        print(f"duplicate bill numbers: {', '.join(duplicates)}", file=sys.stderr)
+    # Notes are true and not wrong, so they go to stdout; problems are what a
+    # caller checking the exit code cares about, so they go to stderr.
+    for note in report.notes:
+        print(note)
+    for problem in report.problems:
+        print(problem, file=sys.stderr)
 
-    years = {int(path.parent.name) for path in bill_paths(profile)}
-    for year in sorted(years):
-        # Numbers issued before this tool existed are not gaps — they are Word
-        # files in a folder somewhere. They must still be declared, so that a
-        # genuinely missing number is never mistaken for one of them.
-        _, year_data = load_expenses(profile, year)
-        elsewhere = set(year_data.get("bills_issued_elsewhere", []))
-        if elsewhere:
-            print(f"{year}: {len(elsewhere)} bill(s) issued before migration, not in this repo")
-        gaps = [g for g in find_gaps(numbers + sorted(elsewhere), year) if str(g) not in elsewhere]
-        if gaps:
-            problems += 1
-            print(
-                f"{year}: gaps in the numbering: {', '.join(str(g) for g in gaps)}",
-                file=sys.stderr,
-            )
-
-    for bill in load_bills(profile):
-        if str(bill.number) != f"{bill.number}":
-            continue
-        if not bill.items:
-            problems += 1
-            print(f"{bill.number}: no line items", file=sys.stderr)
-        if bill.net <= 0:
-            problems += 1
-            print(f"{bill.number}: net amount is {bill.net}", file=sys.stderr)
-
-    if problems:
+    if not report.ok:
         return 1
-    print(f"ok — {len(numbers)} bill(s), no numbering gaps, no duplicates")
+    print(f"ok — {report.bills} bill(s), no numbering gaps, no duplicates")
     return 0
 
 

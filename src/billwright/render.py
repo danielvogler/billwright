@@ -16,6 +16,7 @@ from pathlib import Path
 
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 
+from . import __version__
 from .fonts import FACES, FontError, describe_missing, fonts_dir, missing_faces
 from .i18n import MONTHS, country_name, strings, unit_name
 from .model import Bill, Brand, Company, Statement
@@ -60,6 +61,11 @@ def _environment(profile: Path | None = None) -> Environment:
     env.filters["amount"] = format_amount
     env.filters["qty"] = format_quantity
     env.filters["unit"] = unit_name
+    # A document should be able to say which code produced it — an archive is
+    # kept for ten years and the lock file that pinned the version lives in
+    # another repository that may have moved on. Metadata only: it is provenance,
+    # not something the client has any use for.
+    env.globals["billwright_version"] = __version__
     return env
 
 

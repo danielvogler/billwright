@@ -8,6 +8,21 @@ follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **`billwright --version`**, and the same string in the PDF metadata as
+  `/Creator`. "Which version of the tool produced this document" is a question
+  an archive kept for ten years should answer on its own, rather than by way of
+  a lock file in another repository that may have moved on. It is metadata, not
+  visible on the document — a client has no use for it.
+
+  One consequence, stated plainly: re-rendering an archived invoice under a
+  *later* version now produces different bytes. `tests/test_reproducible.py`
+  still holds — the same input and the same version give the same file — but
+  "re-render and diff" as a way of checking an archive is now a check against
+  the version that wrote it.
+
+- The version is read from the installed distribution rather than being a second
+  string in `__init__.py` to drift from `pyproject.toml`.
+
 - **`billwright scan`.** The leak guard shipped only in `tools/`, outside the
   wheel, so an installed copy could not run it — and it is the check that makes
   keeping a company profile inside another repository defensible rather than

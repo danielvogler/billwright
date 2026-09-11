@@ -8,6 +8,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
+from . import __version__
 from .model import Brand, Company
 from .native import ensure_native_libraries
 from .paths import (
@@ -245,6 +246,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="billwright",
         description="Generate bills and yearly statements.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"billwright {__version__}",
+        help="print the version and exit",
     )
     parser.add_argument(
         "--profile",

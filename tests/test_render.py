@@ -137,3 +137,29 @@ def test_english_intro_reads_as_written_english(tmp_path, profile, assets):
     assert "Thank you for the engagement." in text
     assert "instruction" not in text
     assert "thank you for" not in text  # lowercase opener is a German habit
+
+
+def test_the_pdf_records_which_version_rendered_it(tmp_path, profile, assets):
+    """An archive should answer "which code produced this" on its own.
+
+    Deliberately in the metadata rather than on the visible document: it is a
+    provenance fact, not something a client has any use for.
+    """
+    from billwright import __version__
+
+    company, brand = load_company(profile), load_brand(profile)
+    bill = find_bill(profile, BILL)
+    target = tmp_path / "versioned.pdf"
+    render_bill(bill, company, brand, assets, target)
+
+    creator = PdfReader(str(target)).metadata.creator
+    assert creator == f"billwright {__version__}"
+
+
+def test_the_version_is_the_installed_distributions(tmp_path):
+    """Not a second hardcoded string that drifts from pyproject.toml."""
+    from importlib.metadata import version
+
+    from billwright import __version__
+
+    assert __version__ == version("billwright")

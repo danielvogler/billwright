@@ -258,6 +258,26 @@ in commit messages.
 
 ---
 
+## What this tool does not do
+
+Stated because the obvious fix for a storage problem is the wrong one here, and
+the next agent to read "the archive has to outlive a laptop" will otherwise
+propose it in good faith.
+
+**No storage backend.** No Drive, no S3, no GCS, no upload of any kind. "It
+reads and writes local files and talks to nothing" is a property people rely on,
+and it is most of why this tool is allowed near a company's bank details at all.
+Making an archive survive a disk is a sync problem, solved outside this tool.
+
+**Nothing that sends a document anywhere.** No mail, no client portal, no
+webhook. An invoice leaving the company is a human decision, and a tool that
+could send one makes that unenforceable.
+
+If a request seems to need either, the answer is a path on disk and a sentence
+explaining who copies it where.
+
+---
+
 ## Things that will bite you
 
 **WeasyPrint on macOS.** It binds Pango/GLib/Cairo through cffi and Homebrew

@@ -44,8 +44,9 @@ client and hand to the tax office — no subscription, no account, no server.
   your typeface, and writes them into the profile. You are not stuck with the
   neutral default, and you do not have to name a hex code to change it.
 - **The same invoice, forever.** Re-rendering a bill from three years ago
-  produces the identical file, byte for byte. That is what makes the archive
-  evidence rather than a copy.
+  produces the identical file, byte for byte, from the same version of
+  billwright — and the PDF metadata records which version that was. That is what
+  makes the archive evidence rather than a copy.
 
 Your company details — address, bank details, clients, rates, colours — live in
 a folder of small text files. The program itself holds none of them, so one

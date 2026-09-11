@@ -140,7 +140,10 @@ the engine and let both call it.
   IBAN, colour, font or wordmark.
 - `data/` is the **profile**: all company facts. Gitignored. `example/` is a
   fictional profile that is committed, and what the tests run against.
-- `assets/` holds the vendored font and the reference Word original.
+- `src/billwright/assets/fonts/` holds the vendored typeface. It is inside the
+  package so that an installed copy renders correctly with no flags; a face the
+  renderer cannot find is now an error rather than a substitution.
+- `assets/reference/` (gitignored) is for source documents from clients.
 - `skills/` documents how to rebuild the system, split generic vs. specific, so
   it can be reused for another company. Read
   [`skills/README.md`](skills/README.md) before making structural changes.
@@ -252,6 +255,26 @@ or documentation. If it describes a business event, it belongs somewhere above.
 
 **10. No co-authored commits.** No `Co-Authored-By` trailer, no tool attribution
 in commit messages.
+
+---
+
+## What this tool does not do
+
+Stated because the obvious fix for a storage problem is the wrong one here, and
+the next agent to read "the archive has to outlive a laptop" will otherwise
+propose it in good faith.
+
+**No storage backend.** No Drive, no S3, no GCS, no upload of any kind. "It
+reads and writes local files and talks to nothing" is a property people rely on,
+and it is most of why this tool is allowed near a company's bank details at all.
+Making an archive survive a disk is a sync problem, solved outside this tool.
+
+**Nothing that sends a document anywhere.** No mail, no client portal, no
+webhook. An invoice leaving the company is a human decision, and a tool that
+could send one makes that unenforceable.
+
+If a request seems to need either, the answer is a path on disk and a sentence
+explaining who copies it where.
 
 ---
 

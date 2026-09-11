@@ -8,6 +8,66 @@ follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **`billwright --version`**, and the same string in the PDF metadata as
+  `/Creator`. "Which version of the tool produced this document" is a question
+  an archive kept for ten years should answer on its own, rather than by way of
+  a lock file in another repository that may have moved on. It is metadata, not
+  visible on the document — a client has no use for it.
+
+  One consequence, stated plainly: re-rendering an archived invoice under a
+  *later* version now produces different bytes. `tests/test_reproducible.py`
+  still holds — the same input and the same version give the same file — but
+  "re-render and diff" as a way of checking an archive is now a check against
+  the version that wrote it.
+
+- The version is read from the installed distribution rather than being a second
+  string in `__init__.py` to drift from `pyproject.toml`.
+
+- **`billwright scan`.** The leak guard shipped only in `tools/`, outside the
+  wheel, so an installed copy could not run it — and it is the check that makes
+  keeping a company profile inside another repository defensible rather than
+  merely convenient. It already took `--root`, so a consuming repository can now
+  gate its own commits on `billwright scan --root .`. Nothing about the
+  detectors changed, including that it never echoes what it matched.
+
+### Fixed
+
+- **`--archive` no longer writes the ten-year record into the virtualenv.**
+  `paths.py` derived its directories from `Path(__file__).parents[2]` — the
+  repository root in a clone, but `<venv>/lib/python3.x/` once billwright is
+  installed as a dependency. `billwright bill … --archive` filed the invoice
+  there, printed the path and exited 0, and the next `uv sync --reinstall`
+  deleted it. The failure was silent and the record is required for ten years
+  under `OR Art. 958f`.
+
+  The archive now defaults to `<profile>/archive` — beside the company data,
+  because that is what an issued invoice is — and can be pointed anywhere with
+  `--archive-dir`, `$BILLWRIGHT_ARCHIVE` or `[tool.billwright] archive`,
+  resolved against the working directory exactly as `profile` already is. An
+  archive path inside the Python installation is refused rather than written.
+  Drafts (`--out`) likewise default to `./out` in the working directory.
+
+- **The typeface now ships in the wheel.** `assets/fonts/` sat at the repository
+  root, outside the package, so an installed copy found no faces and typeset
+  client-facing invoices in whatever WeasyPrint substituted — silently, because
+  a missing face was skipped with `continue`. The faces moved to
+  `src/billwright/assets/fonts/`, a missing one is now an error, and `doctor`
+  checks for the three declared faces rather than for a non-empty directory
+  (one holding only `OFL.txt` used to pass and still render wrong).
+
+- **`init-profile` no longer writes a profile that cannot render.** A missing
+  `brand.toml` at the source was skipped in silence, and `load_brand` requires
+  the file; it is now reported when the profile is created rather than by a
+  later command. `--from` defaults to `./example` in the working directory.
+
+- **The MCP server can serve its own manual when installed.** The
+  `billwright://agents` resource read `AGENTS.md` from the repository root and
+  raised `FileNotFoundError` from an installed copy — while the server's own
+  instructions tell a client to read it first. `AGENTS.md` is now force-included
+  into the wheel; it is still tracked exactly once.
+
+### Added
+
 - **An optional MCP server**, `billwright[mcp]`, run as `billwright-mcp`. It
   exists for the one case a shell cannot cover: an agent with no terminal, in a
   chat client or on a schedule, that still has to issue a bill. The command line

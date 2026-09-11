@@ -9,7 +9,14 @@ import shutil
 
 import pytest
 
-from billwright.doctor import Level, check_company, check_rates, diagnose
+from billwright.doctor import (
+    Level,
+    check_company,
+    check_environment,
+    check_rates,
+    diagnose,
+)
+from billwright.paths import DEFAULT_ASSETS
 
 BAD_CHECKSUM_IBAN = "CH93 0076 2011 6238 5295 8"  # scan: allow — last digit changed
 FOREIGN_IBAN = "DE89 3704 0044 0532 0130 00"  # scan: allow — documentation IBAN
@@ -110,3 +117,19 @@ def test_a_missing_company_file_is_one_clear_error(tmp_path):
     problems = check_company(tmp_path)
     assert len(problems) == 1
     assert problems[0].level is Level.ERROR
+
+
+def test_a_fonts_directory_missing_a_declared_face_is_an_error(tmp_path):
+    """Non-empty is not the same as complete: OFL.txt alone used to pass."""
+    fonts = tmp_path / "fonts"
+    fonts.mkdir()
+    (fonts / "OFL.txt").write_text("licence\n", encoding="utf-8")
+
+    problems = check_environment(tmp_path)
+
+    faces = [p for p in problems if "Inter-Regular.otf" in p.message]
+    assert faces and faces[0].level is Level.ERROR
+
+
+def test_the_packaged_assets_satisfy_doctor():
+    assert not [p for p in check_environment(DEFAULT_ASSETS) if "font" in p.message.lower()]

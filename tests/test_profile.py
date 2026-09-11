@@ -10,7 +10,15 @@ from pathlib import Path
 
 import pytest
 
-from billwright.load import PROFILE_ENV, ProfileError, is_profile_dir, resolve_profile
+from billwright.load import (
+    ARCHIVE_ENV,
+    PROFILE_ENV,
+    ProfileError,
+    is_profile_dir,
+    resolve_archive_dir,
+    resolve_profile,
+)
+from billwright.paths import ArchiveLocationError
 
 
 def make_profile(root: Path, name: str) -> Path:
@@ -112,3 +120,61 @@ def test_no_gitkeep_placeholders(profile):
     assert not list(root.glob("data/**/.gitkeep"))
     assert not list(root.glob("archive/**/.gitkeep"))
     assert not list(root.glob("out/**/.gitkeep"))
+
+
+# ---- archive resolution ---------------------------------------------------
+#
+# Same shape as profile resolution, and deliberately so: the archive is the
+# ten-year record (`OR Art. 958f`), and the one thing it must never be is a
+# directory inside the virtualenv that the next `uv sync --reinstall` removes.
+
+
+def test_archive_defaults_to_the_profile(tmp_path):
+    data = make_profile(tmp_path, "data")
+    assert resolve_archive_dir(profile=data, root=tmp_path, env={}) == data / "archive"
+
+
+def test_configured_archive_wins_over_the_profile(tmp_path):
+    data = make_profile(tmp_path, "data")
+    (tmp_path / "pyproject.toml").write_text(
+        '[tool.billwright]\narchive = "records/bills"\n', encoding="utf-8"
+    )
+    resolved = resolve_archive_dir(profile=data, root=tmp_path, env={})
+    assert resolved == tmp_path / "records" / "bills"
+
+
+def test_environment_wins_over_the_configured_archive(tmp_path):
+    data = make_profile(tmp_path, "data")
+    (tmp_path / "pyproject.toml").write_text(
+        '[tool.billwright]\narchive = "records"\n', encoding="utf-8"
+    )
+    resolved = resolve_archive_dir(profile=data, root=tmp_path, env={ARCHIVE_ENV: "from-env"})
+    assert resolved == tmp_path / "from-env"
+
+
+def test_an_explicit_archive_dir_wins_over_everything(tmp_path):
+    data = make_profile(tmp_path, "data")
+    resolved = resolve_archive_dir(
+        tmp_path / "flagged", profile=data, root=tmp_path, env={ARCHIVE_ENV: "from-env"}
+    )
+    assert resolved == tmp_path / "flagged"
+
+
+def test_an_absolute_configured_archive_is_left_alone(tmp_path):
+    """Theirs lives outside the working directory entirely — that must be sayable."""
+    data = make_profile(tmp_path, "data")
+    elsewhere = tmp_path / "elsewhere" / "archive"
+    (tmp_path / "pyproject.toml").write_text(
+        f'[tool.billwright]\narchive = "{elsewhere}"\n', encoding="utf-8"
+    )
+    assert resolve_archive_dir(profile=data, root=tmp_path, env={}) == elsewhere
+
+
+def test_an_archive_inside_the_installation_is_refused(tmp_path):
+    data = make_profile(tmp_path, "data")
+    doomed = tmp_path / "lib" / "python3.13" / "site-packages" / "archive"
+    (tmp_path / "pyproject.toml").write_text(
+        f'[tool.billwright]\narchive = "{doomed}"\n', encoding="utf-8"
+    )
+    with pytest.raises(ArchiveLocationError):
+        resolve_archive_dir(profile=data, root=tmp_path, env={})

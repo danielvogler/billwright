@@ -19,10 +19,12 @@ from pydantic import BaseModel, ValidationError
 
 from .model import Address, Bill, Brand, Client, Company, ExpenseItem, LineItem
 from .money import money
+from .paths import checked_archive_dir, default_archive
 
 T = TypeVar("T", bound=BaseModel)
 
 PROFILE_ENV = "BILLWRIGHT_PROFILE"
+ARCHIVE_ENV = "BILLWRIGHT_ARCHIVE"
 PROFILE_MARKER = "company.toml"
 
 
@@ -41,8 +43,14 @@ def is_profile_dir(path: Path) -> bool:
     return (path / PROFILE_MARKER).is_file()
 
 
-def _configured_profile(root: Path) -> Path | None:
-    """``[tool.billwright] profile`` from ``pyproject.toml``, if set."""
+def _configured(root: Path, key: str) -> Path | None:
+    """``[tool.billwright] <key>`` from ``pyproject.toml`` as a path, if set.
+
+    Read from the *consuming* project's ``pyproject.toml`` and resolved against
+    ``root``, never against the installed package. That is what lets a profile
+    live in another repository and bill from there; if this ever becomes
+    package-relative, billing as a dependency stops working.
+    """
     path = root / "pyproject.toml"
     if not path.is_file():
         return None
@@ -51,7 +59,7 @@ def _configured_profile(root: Path) -> Path | None:
             data = tomllib.load(handle)
     except tomllib.TOMLDecodeError as exc:
         raise ProfileError(f"{path}: {exc}") from exc
-    configured = data.get("tool", {}).get("billwright", {}).get("profile")
+    configured = data.get("tool", {}).get("billwright", {}).get(key)
     if not configured:
         return None
     return root / str(configured)
@@ -99,7 +107,7 @@ def resolve_profile(
 
     candidates = [
         candidate
-        for candidate in (_configured_profile(root), root / "data", root / "example")
+        for candidate in (_configured(root, "profile"), root / "data", root / "example")
         if candidate is not None
     ]
     for candidate in candidates:
@@ -111,6 +119,44 @@ def resolve_profile(
         f"no profile found (looked for {PROFILE_MARKER} in: {tried}). "
         f"Pass --profile, set ${PROFILE_ENV}, or create data/{PROFILE_MARKER}."
     )
+
+
+def resolve_archive_dir(
+    explicit: str | Path | None = None,
+    *,
+    profile: Path,
+    root: Path | None = None,
+    env: Mapping[str, str] | None = None,
+) -> Path:
+    """Find the directory ``--archive`` writes the ten-year record into.
+
+    In order: the ``--archive-dir`` flag, ``$BILLWRIGHT_ARCHIVE``, the
+    ``[tool.billwright] archive`` setting, then ``<profile>/archive``.
+
+    Unlike the profile there is no fall-through: every candidate is a request,
+    because an archive directory that does not exist yet is the normal case —
+    the first archived invoice creates it. So there is nothing to probe for, and
+    a typo cannot be distinguished from a first run. It is checked for being
+    somewhere a reinstall would delete instead.
+
+    Relative paths resolve against ``root``, which defaults to the working
+    directory — never against the installed package.
+    """
+    root = Path.cwd() if root is None else Path(root)
+    environ = os.environ if env is None else env
+
+    if explicit:
+        return checked_archive_dir(root / Path(explicit))
+
+    requested = environ.get(ARCHIVE_ENV, "").strip()
+    if requested:
+        return checked_archive_dir(root / requested)
+
+    configured = _configured(root, "archive")
+    if configured is not None:
+        return checked_archive_dir(configured)
+
+    return checked_archive_dir(default_archive(profile))
 
 
 def _read(path: Path) -> dict:

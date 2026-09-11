@@ -1,5 +1,11 @@
 """Fail if a tracked file contains a private value.
 
+Exposed as `billwright scan`, so a repository that merely *depends* on
+billwright can gate its own commits on it. That is the whole point of shipping
+it: `--root` already scans another tree, and a rule nobody can run is not a
+gate. It used to live in `tools/`, outside the wheel, reachable only from a
+clone.
+
 This is the guardrail that catches the mistake at 23:00. The engine holds no
 company facts by design, but the way that design breaks is a value copied into
 a test, a README example or a commit message while debugging — and once pushed,
@@ -34,8 +40,6 @@ import sys
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Relative to the repository being scanned, not to this file: `--root` must
 # scan that tree's denylist, or a test would silently inherit this one's.
@@ -282,12 +286,11 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="profile whose values must not appear in tracked files (default: resolved)",
     )
-    parser.add_argument("--root", default=str(REPO_ROOT), help="repository to scan")
+    parser.add_argument("--root", default=".", help="repository to scan (default: .)")
     args = parser.parse_args(argv)
 
     root = Path(args.root).resolve()
-    sys.path.insert(0, str(root / "src"))
-    from billwright.load import ProfileError, resolve_profile
+    from .load import ProfileError, resolve_profile
 
     patterns: dict[str, str] = {}
     try:
@@ -327,5 +330,5 @@ def main(argv: list[str] | None = None) -> int:
     return 1
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())

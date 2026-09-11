@@ -44,8 +44,9 @@ client and hand to the tax office — no subscription, no account, no server.
   your typeface, and writes them into the profile. You are not stuck with the
   neutral default, and you do not have to name a hex code to change it.
 - **The same invoice, forever.** Re-rendering a bill from three years ago
-  produces the identical file, byte for byte. That is what makes the archive
-  evidence rather than a copy.
+  produces the identical file, byte for byte, from the same version of
+  billwright — and the PDF metadata records which version that was. That is what
+  makes the archive evidence rather than a copy.
 
 Your company details — address, bank details, clients, rates, colours — live in
 a folder of small text files. The program itself holds none of them, so one
@@ -170,7 +171,7 @@ flowchart LR
         DK("Kennzahlen PDF")
     end
 
-    A("archive/<br/>the ten-year record, OR Art. 958f")
+    A("&lt;profile&gt;/archive/<br/>the ten-year record, OR Art. 958f")
 
     PC --> L
     PB --> L
@@ -275,8 +276,22 @@ There is no `total` field. The total is computed from the lines, which is the
 whole point — the hand-made document this replaces stated a total its own items
 did not sum to.
 
-`out/` is scratch and gitignored. `archive/` is the record: Swiss law
+`out/` is scratch and gitignored. The archive is the record: Swiss law
 (`OR Art. 958f`) requires keeping issued invoices for ten years.
+
+`--archive` writes into `<profile>/archive` — beside the company data, because
+that is what it is. Point it somewhere else with `--archive-dir`, with
+`$BILLWRIGHT_ARCHIVE`, or once and for all in your `pyproject.toml`:
+
+```toml
+[tool.billwright]
+profile = "admin/finance/billing"
+archive = "admin/finance/billing/archive"   # optional; this is also the default
+```
+
+Relative paths resolve against the working directory, never against the
+installed package — which is what lets the profile, and its archive, live in a
+repository that merely depends on billwright.
 
 ## The yearly accounts
 
@@ -376,8 +391,8 @@ before it runs.
 example/          a fictional profile — committed, used by the tests and CI
 data/             your profile (gitignored) — company, brand, rates, clients, bills
 src/billwright/   the generator. Contains no company values at all.
-assets/           vendored Inter
-archive/          issued PDFs, the ten-year record (gitignored)
+  assets/fonts/   vendored Inter, shipped inside the wheel
+data/archive/     issued PDFs, the ten-year record (gitignored)
 skills/           agent-facing guidance for building and extending this
 docs/             README images — the banner and the example renders
 out/              scratch renders (gitignored)
@@ -460,8 +475,8 @@ for what you send and file.
 Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 Two things carry their own terms. The Inter typeface bundled unmodified in
-`assets/fonts/` is under the SIL Open Font License 1.1
-([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)). `python-stdnum`, used to
+`src/billwright/assets/fonts/` is under the SIL Open Font License 1.1
+([`OFL.txt`](src/billwright/assets/fonts/OFL.txt)). `python-stdnum`, used to
 checksum IBANs, is LGPL — a dependency, not vendored here. Everything else in
 the dependency tree is BSD or MIT.
 

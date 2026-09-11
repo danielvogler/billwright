@@ -130,9 +130,19 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
     ``brand.toml`` is copied from ``brand_source`` rather than emptied: a blank
     palette renders a blank document, and the sample's neutral palette is a
     usable default that someone can ignore until they care.
+
+    A ``brand_source`` without a ``brand.toml`` raises. It used to be skipped in
+    silence, which produced a profile that cannot render at all — ``load_brand``
+    requires the file — and said so only later, from a different command.
     """
     if target.exists() and any(target.iterdir()):
         raise FileExistsError(f"{target} already exists and is not empty")
+
+    if brand_source is not None and not (brand_source / "brand.toml").is_file():
+        raise FileNotFoundError(
+            f"no brand.toml in {brand_source}, so the new profile would have none "
+            "and could not render. Pass --from <profile> pointing at one that has it."
+        )
 
     (target / "clients").mkdir(parents=True, exist_ok=True)
 
@@ -146,7 +156,7 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
         path.write_text(content, encoding="utf-8")
         written.append(path)
 
-    if brand_source is not None and (brand_source / "brand.toml").is_file():
+    if brand_source is not None:
         brand = target / "brand.toml"
         brand.write_text(
             (brand_source / "brand.toml").read_text(encoding="utf-8"), encoding="utf-8"

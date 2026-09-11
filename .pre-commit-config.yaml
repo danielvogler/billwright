@@ -35,7 +35,7 @@ repos:
 
       - id: scan
         name: scan for private values in tracked files
-        entry: uv run python tools/scan.py
+        entry: uv run billwright scan
         language: system
         pass_filenames: false
         always_run: true

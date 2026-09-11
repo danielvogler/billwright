@@ -4,6 +4,12 @@ All notable changes to this project. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- A logo and an architecture diagram in the README.
+
 ## [0.1.0] — 2026-08-13
 
 First release: a generic engine that renders Swiss invoices and year-end

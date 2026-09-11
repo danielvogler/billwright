@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-label="billwright — Swiss QR invoices and the year-end accounts to match">
+  <title>billwright</title>
+  <!-- The tool's one idea, drawn: three line items, a total nobody typed, and
+       the Swiss QR payment part carrying that same figure. The tie between the
+       total and the code is the whole mechanism — the amount a client scans is
+       computed from the lines above it, so it cannot drift from the invoice. -->
+  <rect width="1200" height="340" fill="#FDFDFB"/>
+  <rect y="339" width="1200" height="1" fill="#E5E4DE"/>
+
+  <g font-family="Inter, ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+    <circle cx="72" cy="74" r="4" fill="#2F5C86"/>
+    <text x="88" y="79" font-size="14" font-weight="600" letter-spacing="2.2" fill="#6F6F6B">SWISS QR INVOICING &#183; YEAR-END ACCOUNTS</text>
+
+    <!-- The accent period is the mark. It is the same device the tool prints on
+         every invoice: `_wordmark.html.j2` ends line two on an accent-coloured
+         dot, and there is no drawn logo to embed here for the same reason. -->
+    <text x="70" y="182" font-size="92" letter-spacing="-4.2">
+      <tspan fill="#0E0E10" font-weight="700">bill</tspan><tspan fill="#6F6F6B" font-weight="400">wright</tspan><tspan fill="#2F5C86" font-weight="700">.</tspan>
+    </text>
+
+    <text x="72" y="238" font-size="25" fill="#6F6F6B">Invoices your client pays by scanning,</text>
+    <text x="72" y="274" font-size="25" fill="#6F6F6B">and the year-end accounts to match.</text>
+
+    <text x="72" y="316" font-size="14" fill="#A3A39D">Text files in, PDFs out. Totals computed, never stored. No account, no server.</text>
+  </g>
+
+  <!-- The invoice fragment. Tabular figures, right-aligned, as on the sheet. -->
+  <g font-family="Inter, ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="800" y="86" font-size="12" font-weight="600" letter-spacing="1.6" fill="#A3A39D">RE-26002</text>
+    <rect x="800" y="96" width="350" height="1" fill="#E5E4DE"/>
+
+    <g font-size="14" fill="#6F6F6B">
+      <text x="800" y="124">Consulting</text>
+      <text x="800" y="152">Engineering</text>
+      <text x="800" y="180">Travel</text>
+    </g>
+    <g font-size="14" fill="#0E0E10" text-anchor="end" font-variant-numeric="tabular-nums">
+      <text x="1150" y="124">1’200.00</text>
+      <text x="1150" y="152">2’175.00</text>
+      <text x="1150" y="180">325.00</text>
+    </g>
+
+    <rect x="800" y="198" width="350" height="1" fill="#0E0E10"/>
+    <text x="800" y="226" font-size="14" font-weight="600" fill="#0E0E10">Total CHF</text>
+    <text x="1150" y="228" font-size="24" font-weight="700" fill="#2F5C86" text-anchor="end" font-variant-numeric="tabular-nums">3’700.00</text>
+  </g>
+
+  <!-- The tie. Deliberately the only curve in the picture: it is the claim. -->
+  <path d="M 1118 244 C 1118 280, 1000 262, 908 280" fill="none" stroke="#BFBEB7" stroke-width="1.6" stroke-dasharray="4 4"/>
+  <path d="M 900 280 l 9 -4 l 0 8 z" fill="#BFBEB7"/>
+
+  <!-- The Swiss QR payment part, as a glyph. -->
+  <g>
+    <rect x="800" y="242" width="76" height="76" fill="#FDFDFB" stroke="#E5E4DE" stroke-width="1"/>
+    <g fill="#0E0E10">
+      <!-- finder patterns -->
+      <rect x="806" y="248" width="16" height="16"/>
+      <rect x="854" y="248" width="16" height="16"/>
+      <rect x="806" y="296" width="16" height="16"/>
+    </g>
+    <g fill="#FDFDFB">
+      <rect x="809" y="251" width="10" height="10"/>
+      <rect x="857" y="251" width="10" height="10"/>
+      <rect x="809" y="299" width="10" height="10"/>
+    </g>
+    <g fill="#0E0E10">
+      <rect x="811" y="253" width="6" height="6"/>
+      <rect x="859" y="253" width="6" height="6"/>
+      <rect x="811" y="301" width="6" height="6"/>
+    </g>
+    <!-- data modules -->
+    <g fill="#0E0E10" opacity="0.85">
+      <rect x="826" y="248" width="4" height="4"/><rect x="838" y="248" width="4" height="4"/>
+      <rect x="832" y="254" width="4" height="4"/><rect x="844" y="254" width="4" height="4"/>
+      <rect x="826" y="260" width="4" height="4"/><rect x="844" y="266" width="4" height="4"/>
+      <rect x="832" y="266" width="4" height="4"/><rect x="838" y="260" width="4" height="4"/>
+      <rect x="806" y="270" width="4" height="4"/><rect x="812" y="276" width="4" height="4"/>
+      <rect x="806" y="282" width="4" height="4"/><rect x="818" y="270" width="4" height="4"/>
+      <rect x="818" y="282" width="4" height="4"/><rect x="812" y="288" width="4" height="4"/>
+      <rect x="854" y="272" width="4" height="4"/><rect x="862" y="266" width="4" height="4"/>
+      <rect x="866" y="278" width="4" height="4"/><rect x="854" y="284" width="4" height="4"/>
+      <rect x="860" y="290" width="4" height="4"/><rect x="848" y="296" width="4" height="4"/>
+      <rect x="856" y="302" width="4" height="4"/><rect x="868" y="296" width="4" height="4"/>
+      <rect x="826" y="302" width="4" height="4"/><rect x="832" y="308" width="4" height="4"/>
+      <rect x="844" y="302" width="4" height="4"/><rect x="838" y="296" width="4" height="4"/>
+      <rect x="866" y="306" width="4" height="4"/><rect x="826" y="290" width="4" height="4"/>
+    </g>
+    <!-- the Swiss cross at the centre, as the standard requires -->
+    <rect x="829" y="271" width="18" height="18" fill="#FDFDFB"/>
+    <rect x="830" y="272" width="16" height="16" fill="#0E0E10"/>
+    <rect x="835.8" y="275" width="4.4" height="10" fill="#FDFDFB"/>
+    <rect x="833" y="277.8" width="10" height="4.4" fill="#FDFDFB"/>
+  </g>
+
+  <g font-family="Inter, ui-sans-serif, sans-serif" font-size="13" fill="#A3A39D">
+    <text x="898" y="300">The payment part carries this total.</text>
+    <text x="898" y="318">Nothing types it twice.</text>
+  </g>
+</svg>

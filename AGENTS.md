@@ -127,6 +127,13 @@ uv run billwright --help
 The entry point is `billwright.main:main`, exposed as `billwright` and as
 `python -m billwright`.
 
+There is a second, optional entry point: `billwright.mcp_server:main`, exposed
+as `billwright-mcp` and installed only with the `mcp` extra. **It is not the way
+in, and it is not a place to put behaviour.** It serves this file verbatim as a
+resource and calls the same loaders the CLI calls; anything it did that the CLI
+does not is by definition drift. If you are about to add logic there, add it to
+the engine and let both call it.
+
 **How the repo is split** — this is the thing to understand first:
 
 - `src/billwright/` is a **generic engine**. It contains no company name, address,
@@ -296,6 +303,11 @@ company's invoice look right, the seam has leaked.
 
 **A new document type**: a template in `templates/`, a stylesheet in `styles/`, a
 subcommand in `main.py`. Reuse `tokens.css` and `print.css`.
+
+**A new command**: a subcommand in `main.py`, and — if an agent without a shell
+would need it — a tool in `mcp_server.py` that calls the same function. Put the
+logic in a module both can import, never in either entry point. `audit.py` and
+`paths.py` exist because that rule was applied to `check` and to filenames.
 
 ---
 

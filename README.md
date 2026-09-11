@@ -330,6 +330,46 @@ uv run billwright statement 2026 --language en
 
 ---
 
+## Serving it over MCP
+
+Optional, and not the way in. An agent with a terminal already has everything —
+`AGENTS.md` and the command line above are the full interface, and that is the
+path this repository is written for.
+
+The case this covers is the one a shell cannot: an agent with **no terminal** —
+a chat client, or something running on a schedule — that still has to issue a
+bill.
+
+```bash
+uv sync --extra mcp
+billwright-mcp --profile data        # stdio, launched by your MCP client
+```
+
+Eight tools, one per thing the CLI already does: `profile_info`, `list_bills`,
+`show_bill`, `new_bill`, `bill`, `statement`, `check_bills`, `check_profile`.
+
+Three things are worth knowing about it, because they are why it is safe to
+have:
+
+- **It restates nothing.** `AGENTS.md` is served verbatim as the
+  `billwright://agents` resource rather than paraphrased into tool descriptions.
+  A second copy of the rules would drift, and the copy the agent reads would be
+  the stale one.
+- **It computes nothing.** Every figure comes from the same loaders and the same
+  exact-decimal arithmetic the command line uses, so a bill rendered over MCP is
+  the same file as one rendered from the shell.
+- **It says which company it is billing as, every time.** The profile is
+  resolved once at startup and named in every response. A terminal shows you a
+  working directory; a chat window shows you nothing, and billing under the
+  wrong company is worse than not billing.
+
+`archive=True` is a parameter on `bill` and `statement`, exactly as `--archive`
+is a flag on the CLI. It writes the permanent ten-year copy, so it is a separate
+decision from rendering a draft — and your MCP client will show you the argument
+before it runs.
+
+---
+
 ## How it is organised
 
 ```

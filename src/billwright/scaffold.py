@@ -14,7 +14,10 @@ missing from the scaffold.
 
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
+
+from .model import Company
 
 COMPANY = """# Your company. Everything on the invoice above the line items comes from here.
 #
@@ -155,3 +158,39 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
     # resolve_profile() and then fail instead of falling through to the sample.
     # Every writer creates its own directory when it first needs it.
     return written
+
+
+def bill_template(number: str, client_key: str, company: Company, rates: dict) -> str:
+    """A scaffold that renders as written.
+
+    The service name comes from the profile's own rates. Hardcoding one here
+    put a company's service category in the engine and, worse, scaffolded a
+    bill that failed on 'unknown service' the first time a new user ran it —
+    the very first command after setting up a profile.
+    """
+    known = sorted(rates)
+    if known:
+        priced = f'service = "{known[0]}"'
+        options = f"# services in this profile: {', '.join(known)}"
+    else:
+        # No rates.toml: price the line directly rather than name a rate that
+        # does not exist.
+        priced = 'unit_price = "0.00"'
+        options = "# no rates.toml in this profile, so the price is on the line"
+
+    return f'''# {number}
+number = "{number}"
+date = {date.today().isoformat()}
+client = "{client_key}"
+language = "{company.default_language}"
+terms_days = {company.default_terms_days}
+project = ""
+
+# `service` looks the rate up in rates.toml; `unit_price` overrides it.
+{options}
+[[items]]
+description = ""
+quantity = 0.0
+unit = "hours"
+{priced}
+'''

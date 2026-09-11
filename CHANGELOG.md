@@ -6,6 +6,15 @@ follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`billwright scan`.** The leak guard shipped only in `tools/`, outside the
+  wheel, so an installed copy could not run it — and it is the check that makes
+  keeping a company profile inside another repository defensible rather than
+  merely convenient. It already took `--root`, so a consuming repository can now
+  gate its own commits on `billwright scan --root .`. Nothing about the
+  detectors changed, including that it never echoes what it matched.
+
 ### Fixed
 
 - **`--archive` no longer writes the ten-year record into the virtualenv.**

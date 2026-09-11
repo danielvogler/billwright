@@ -83,7 +83,7 @@ fmt:  ## Reformat the code
 	uv run ruff check --fix .
 
 scan:  ## Fail if a tracked file contains a private value
-	uv run python tools/scan.py
+	uv run billwright scan
 
 types:  ## Type-check src/
 	uv run mypy

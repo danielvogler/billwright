@@ -6,26 +6,16 @@ an edit. The scan is worth having only if it fires on the real cases and stays
 quiet on the documentation ones, so both directions are tested.
 """
 
-import importlib.util
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+from billwright import scan as scan_module
+from billwright.main import main as billwright_main
 
-# tools/ is repo tooling rather than part of the package, so it is loaded by
-# path instead of imported. Keeping it out of src/ keeps the billing engine to
-# billing.
-_spec = importlib.util.spec_from_file_location("scan", REPO_ROOT / "tools" / "scan.py")
-assert _spec and _spec.loader
-scan_module = importlib.util.module_from_spec(_spec)
-# Registered before execution because @dataclass resolves its annotations
-# through sys.modules, and the module uses postponed evaluation.
-sys.modules[_spec.name] = scan_module
-_spec.loader.exec_module(scan_module)
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 DOCUMENTATION_IBAN = "CH93 0076 2011 6238 5295 7"  # scan: allow — fixture, not a real account
 OTHER_IBAN = "CH56 0483 5012 3456 7800 9"  # scan: allow — fixture, not a real account
@@ -321,3 +311,26 @@ def test_the_waiver_is_per_line_not_per_file(tmp_path):
     )
     findings, _ = scan_module.scan(tmp_path, {})
     assert [(f.line, f.label) for f in findings] == [(2, "IBAN")]
+
+
+def test_the_subcommand_scans_a_tree_that_is_not_this_one(tmp_path, capsys):
+    """The reason it ships: a repository that only depends on billwright.
+
+    It lived in `tools/`, outside the wheel, so an installed copy could not run
+    the guard that makes keeping a profile inside another repository defensible.
+    """
+    make_repo(tmp_path)
+    write_profile(tmp_path)
+    track(tmp_path, "README.md", "# A generic engine\n")
+
+    assert billwright_main(["scan", "--root", str(tmp_path)]) == 0
+    assert "clean" in capsys.readouterr().out
+
+
+def test_the_subcommand_fails_on_a_leak(tmp_path, capsys):
+    make_repo(tmp_path)
+    write_profile(tmp_path)
+    track(tmp_path, "notes.md", "call +41 79 123 45 67\n")  # scan: allow — fixture
+
+    assert billwright_main(["scan", "--root", str(tmp_path)]) == 1
+    assert "notes.md" in capsys.readouterr().err

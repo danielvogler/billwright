@@ -229,6 +229,18 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_scan(args: argparse.Namespace) -> int:
+    from .scan import main as scan_main
+
+    # Its own argv, because the scan takes a repository rather than a profile
+    # directory: a consuming repository gates its commits on `--root .` while
+    # the profile it bills from lives somewhere inside that tree.
+    argv = ["--root", args.root]
+    if args.profile:
+        argv += ["--profile", str(args.profile)]
+    return scan_main(argv)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="billwright",
@@ -289,6 +301,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     doctor = sub.add_parser("doctor", help="validate the profile and the environment")
     doctor.set_defaults(func=cmd_doctor)
+
+    scan = sub.add_parser("scan", help="fail if a tracked file holds a private value")
+    scan.add_argument("--root", default=".", help="repository to scan (default: .)")
+    scan.set_defaults(func=cmd_scan)
 
     init = sub.add_parser("init-profile", help="write an empty profile to fill in")
     init.add_argument("--into", default="data", help="where to create it (default: data)")

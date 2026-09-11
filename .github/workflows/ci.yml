@@ -63,7 +63,7 @@ jobs:
       # structural layer: anything shaped like an IBAN, a Swiss UID, an email
       # address or a phone number in a tracked file fails the build.
       - name: Scan for private values
-        run: uv run python tools/scan.py
+        run: uv run billwright scan
 
       - name: Test
         run: uv run pytest -q

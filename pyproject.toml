@@ -50,6 +50,12 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/billwright"]
 
+# The operating manual, served verbatim by the MCP server as the
+# `billwright://agents` resource. Tracked once at the repository root and copied
+# in at build time: a second tracked copy is the one that goes stale.
+[tool.hatch.build.targets.wheel.force-include]
+"AGENTS.md" = "billwright/AGENTS.md"
+
 [tool.billwright]
 # The active company profile. Everything company-specific lives under data/ and
 # assets/; the package itself holds no company facts at all. Point this at a

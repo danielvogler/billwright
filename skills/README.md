@@ -6,8 +6,11 @@ How to rebuild this system for another company.
 
 The seam is **engine vs. profile**. The Python package holds no company facts at
 all — no name, no IBAN, no colour, no wordmark. Everything specific arrives from
-a profile directory (`data/`) and an assets directory (`assets/`). That is what
-makes a second company a data exercise rather than a fork.
+a profile directory (`data/`). That is what makes a second company a data
+exercise rather than a fork.
+
+The typeface is the one thing that is *not* a company fact and so ships inside
+the package, at `src/billwright/assets/fonts/`. `--assets` overrides it.
 
 Three skills, in two layers:
 
@@ -39,7 +42,10 @@ this particular company — or copy its shape to write one for another.
    └── years/<year>.toml  expenses, balance figures, notes
    ```
 
-4. Drop the company's font into `assets/fonts/` and point `brand.toml` at it.
+4. To use a different typeface, put it in a directory of your own as
+   `fonts/<name>.otf` and pass `--assets` at that directory. Note that the
+   face *filenames* are still the three the renderer declares — see
+   `src/billwright/fonts.py`; `brand.toml`'s `font_file` is not yet read.
 5. `billwright --profile <dir> bill <number>`.
 
 Nothing in `src/` should need to change. If it does, that is a bug in the split:

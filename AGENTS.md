@@ -140,7 +140,10 @@ the engine and let both call it.
   IBAN, colour, font or wordmark.
 - `data/` is the **profile**: all company facts. Gitignored. `example/` is a
   fictional profile that is committed, and what the tests run against.
-- `assets/` holds the vendored font and the reference Word original.
+- `src/billwright/assets/fonts/` holds the vendored typeface. It is inside the
+  package so that an installed copy renders correctly with no flags; a face the
+  renderer cannot find is now an error rather than a substitution.
+- `assets/reference/` (gitignored) is for source documents from clients.
 - `skills/` documents how to rebuild the system, split generic vs. specific, so
   it can be reused for another company. Read
   [`skills/README.md`](skills/README.md) before making structural changes.

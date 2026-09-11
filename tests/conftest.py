@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from billwright.native import missing_native_library_hint
+from billwright.paths import DEFAULT_ASSETS
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,4 +28,9 @@ def profile() -> Path:
 
 @pytest.fixture
 def assets() -> Path:
-    return REPO_ROOT / "assets"
+    """The faces shipped inside the package, which is where they must be.
+
+    They used to live at the repository root, outside the wheel, so an installed
+    copy rendered client invoices in a substituted font.
+    """
+    return DEFAULT_ASSETS

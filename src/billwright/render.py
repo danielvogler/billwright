@@ -16,12 +16,13 @@ from pathlib import Path
 
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 
+from .fonts import FACES, FontError, describe_missing, fonts_dir, missing_faces
 from .i18n import MONTHS, country_name, strings, unit_name
 from .model import Bill, Brand, Company, Statement
 from .money import format_amount, format_chf, format_quantity
+from .paths import PACKAGE_ROOT
 from .qr import build_qr_svg
 
-PACKAGE_ROOT = Path(__file__).parent
 TEMPLATES = PACKAGE_ROOT / "templates"
 STYLES = PACKAGE_ROOT / "styles"
 
@@ -71,18 +72,23 @@ def short_date(value: date) -> str:
     return value.strftime("%d.%m.%Y")
 
 
-def _font_face_css(brand: Brand, assets: Path) -> str:
-    """Embed the vendored faces as data URIs.
+def font_face_css(brand: Brand, assets: Path) -> str:
+    """Embed the declared faces as data URIs.
 
     Vendored rather than system-installed so the build cannot silently
     substitute a different font into a client-facing PDF on another machine.
+
+    An absent face raises. It used to `continue`, which made the docstring above
+    false in the one case it was written for: the faces were not in the wheel, so
+    an installed copy quietly typeset client invoices in whatever WeasyPrint
+    chose and exited 0.
     """
-    faces = [("Inter-Regular.otf", 400), ("Inter-Medium.otf", 500), ("Inter-SemiBold.otf", 600)]
+    if missing := missing_faces(assets):
+        raise FontError(describe_missing(assets, missing))
+
     blocks = []
-    for filename, weight in faces:
-        path = assets / "fonts" / filename
-        if not path.exists():
-            continue
+    for filename, weight in FACES:
+        path = fonts_dir(assets) / filename
         encoded = base64.b64encode(path.read_bytes()).decode("ascii")
         blocks.append(
             f"@font-face {{\n"
@@ -108,7 +114,7 @@ def _stylesheet(brand: Brand, assets: Path, extra: str, profile: Path | None = N
     document_css = STYLES / extra
     variables = f":root {{\n{brand.css_variables()}\n  --font-sans: '{brand.font_family}';\n}}"
     sheets = [
-        _font_face_css(brand, assets),
+        font_face_css(brand, assets),
         variables,
         tokens.read_text(encoding="utf-8"),
         print_css.read_text(encoding="utf-8"),

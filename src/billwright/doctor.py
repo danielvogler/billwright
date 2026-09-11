@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+from .fonts import describe_missing, missing_faces
 from .native import missing_native_library_hint
 
 # Swiss QR bill field limits, from the Implementation Guidelines. Exceeding one
@@ -230,17 +231,10 @@ def check_environment(assets: Path | None = None) -> list[Problem]:
     except ImportError:
         problems.append(Problem(Level.ERROR, "environment", "WeasyPrint is not installed"))
 
-    if assets is not None:
-        fonts = assets / "fonts"
-        if not fonts.is_dir() or not any(fonts.iterdir()):
-            problems.append(
-                Problem(
-                    Level.ERROR,
-                    "environment",
-                    f"no fonts in {fonts}: the document embeds them, and a substituted "
-                    "face on a client's invoice is not something you find out about in time",
-                )
-            )
+    if assets is not None and (missing := missing_faces(assets)):
+        # Named faces, not a non-empty directory: a fonts/ holding only OFL.txt
+        # satisfied the old check and still rendered with a substituted face.
+        problems.append(Problem(Level.ERROR, "environment", describe_missing(assets, missing)))
     return problems
 
 

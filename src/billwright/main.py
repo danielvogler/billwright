@@ -12,9 +12,9 @@ from .model import Brand, Company
 from .native import ensure_native_libraries
 from .paths import (
     DEFAULT_ASSETS,
-    DEFAULT_OUT,
-    REPO_ROOT,
     bill_target,
+    default_out,
+    legacy_archive_note,
     statement_dir,
     statement_stem,
 )
@@ -24,6 +24,22 @@ def _profile(args: argparse.Namespace) -> Path:
     from .load import resolve_profile
 
     return resolve_profile(args.profile)
+
+
+def _archive_dir(args: argparse.Namespace, profile: Path) -> Path:
+    """Where ``--archive`` writes, resolved the same way the profile is.
+
+    Only consulted when ``--archive`` was given, so an unarchived render never
+    fails on an archive setting it is not going to use.
+    """
+    from .load import resolve_archive_dir
+
+    return resolve_archive_dir(args.archive_dir, profile=profile)
+
+
+def _warn_about_a_stranded_archive(archive_dir: Path) -> None:
+    if note := legacy_archive_note(archive_dir):
+        print(note, file=sys.stderr)
 
 
 def _load_context(profile: Path) -> tuple[Company, Brand]:
@@ -42,7 +58,13 @@ def cmd_bill(args: argparse.Namespace) -> int:
     if args.language:
         bill = bill.model_copy(update={"language": args.language})
 
-    target = bill_target(company, bill, archive=args.archive, out=Path(args.out))
+    archive_dir = _archive_dir(args, profile)
+    if args.archive:
+        _warn_about_a_stranded_archive(archive_dir)
+
+    target = bill_target(
+        company, bill, archive=args.archive, out=Path(args.out), archive_dir=archive_dir
+    )
 
     result = render_bill(bill, company, brand, Path(args.assets), target, not args.no_qr, profile)
     print(f"{result.path}  ({result.pages} page(s), payment part: {result.payment_layout})")
@@ -65,7 +87,13 @@ def cmd_statement(args: argparse.Namespace) -> int:
         profile, args.year, company, language=args.language, place=args.place
     )
 
-    out_dir = statement_dir(args.year, archive=args.archive, out=Path(args.out))
+    archive_dir = _archive_dir(args, profile)
+    if args.archive:
+        _warn_about_a_stranded_archive(archive_dir)
+
+    out_dir = statement_dir(
+        args.year, archive=args.archive, out=Path(args.out), archive_dir=archive_dir
+    )
     stem = statement_stem(company, args.year)
 
     targets = [(f"{stem}.pdf", "statement.html.j2")]
@@ -161,10 +189,10 @@ def cmd_init_profile(args: argparse.Namespace) -> int:
     from .scaffold import write_profile
 
     target = Path(args.into)
-    source = Path(args.source) if args.source else REPO_ROOT / "example"
+    source = Path(args.source) if args.source else Path.cwd() / "example"
     try:
         written = write_profile(target, brand_source=source)
-    except FileExistsError as exc:
+    except (FileExistsError, FileNotFoundError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
@@ -214,8 +242,22 @@ def build_parser() -> argparse.ArgumentParser:
             "[tool.billwright] profile, ./data, then ./example"
         ),
     )
-    parser.add_argument("--assets", default=str(DEFAULT_ASSETS), help="assets directory")
-    parser.add_argument("--out", default=str(DEFAULT_OUT), help="output directory")
+    parser.add_argument(
+        "--assets",
+        default=str(DEFAULT_ASSETS),
+        help="directory holding fonts/ (default: the faces shipped with the package)",
+    )
+    parser.add_argument(
+        "--out", default=str(default_out()), help="where drafts go (default: ./out)"
+    )
+    parser.add_argument(
+        "--archive-dir",
+        default=None,
+        help=(
+            "where --archive writes the ten-year record; otherwise "
+            "$BILLWRIGHT_ARCHIVE, [tool.billwright] archive, then <profile>/archive"
+        ),
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     bill = sub.add_parser("bill", help="render one bill")
@@ -250,7 +292,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     init = sub.add_parser("init-profile", help="write an empty profile to fill in")
     init.add_argument("--into", default="data", help="where to create it (default: data)")
-    init.add_argument("--from", dest="source", default="", help="profile to take brand.toml from")
+    init.add_argument(
+        "--from",
+        dest="source",
+        default="",
+        help="profile to take brand.toml from (default: ./example)",
+    )
     init.set_defaults(func=cmd_init_profile)
 
     return parser

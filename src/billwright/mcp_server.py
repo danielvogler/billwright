@@ -32,9 +32,9 @@ from .load import find_bill, load_bills, load_brand, load_client, load_company, 
 from .money import format_chf
 from .paths import (
     DEFAULT_ASSETS,
-    DEFAULT_OUT,
-    REPO_ROOT,
+    PACKAGE_ROOT,
     bill_target,
+    default_out,
     statement_dir,
     statement_stem,
 )
@@ -44,6 +44,13 @@ if TYPE_CHECKING:  # pragma: no cover - import cost is real, the annotation is n
 
 #: The invoice, then the figures sheet. Order matters: `statement` renders both.
 STATEMENT_TEMPLATES = (("", "statement.html.j2"), ("_-_Kennzahlen", "figures.html.j2"))
+
+
+def _archive_dir(profile: Path, explicit: Path | None) -> Path:
+    """The same resolution the CLI performs, so neither can drift from the other."""
+    from .load import resolve_archive_dir
+
+    return resolve_archive_dir(explicit, profile=profile)
 
 
 def _amounts(value: Any) -> dict[str, str]:
@@ -172,7 +179,8 @@ def render_bill(
     language: str | None = None,
     archive: bool = False,
     assets: Path = DEFAULT_ASSETS,
-    out: Path = DEFAULT_OUT,
+    out: Path | None = None,
+    archive_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Render one invoice to a PDF.
 
@@ -189,7 +197,13 @@ def render_bill(
     if language:
         bill = bill.model_copy(update={"language": language})
 
-    target = bill_target(company, bill, archive=archive, out=out)
+    target = bill_target(
+        company,
+        bill,
+        archive=archive,
+        out=out if out is not None else default_out(),
+        archive_dir=_archive_dir(profile, archive_dir),
+    )
     result = render(bill, company, brand, assets, target, True, profile)
     return {
         "profile": str(profile),
@@ -211,7 +225,8 @@ def render_statement(
     place: str | None = None,
     archive: bool = False,
     assets: Path = DEFAULT_ASSETS,
-    out: Path = DEFAULT_OUT,
+    out: Path | None = None,
+    archive_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Render a year's accounts: the Jahresrechnung and the figures sheet.
 
@@ -231,7 +246,12 @@ def render_statement(
         profile, year, company, language=language or "de", place=place or ""
     )
 
-    directory = statement_dir(year, archive=archive, out=out)
+    directory = statement_dir(
+        year,
+        archive=archive,
+        out=out if out is not None else default_out(),
+        archive_dir=_archive_dir(profile, archive_dir),
+    )
     stem = statement_stem(company, year)
     rendered = [
         render(
@@ -285,11 +305,32 @@ def doctor(profile: Path, assets: Path = DEFAULT_ASSETS) -> dict[str, Any]:
     }
 
 
+#: `AGENTS.md` is tracked once, at the repository root, and force-included into
+#: the wheel at build time (see pyproject.toml). One tracked copy, because a
+#: second one is the copy that goes stale — which is the rule this file exists
+#: to honour. Installed, only the first of these exists; in a checkout, only the
+#: second.
+MANUAL_CANDIDATES = (PACKAGE_ROOT / "AGENTS.md", PACKAGE_ROOT.parents[1] / "AGENTS.md")
+
+
+def manual() -> str:
+    """`AGENTS.md`, verbatim. Raises rather than paraphrasing if it is absent."""
+    for candidate in MANUAL_CANDIDATES:
+        if candidate.is_file():
+            return candidate.read_text(encoding="utf-8")
+    looked = ", ".join(str(candidate) for candidate in MANUAL_CANDIDATES)
+    raise FileNotFoundError(
+        f"AGENTS.md is not installed alongside billwright (looked in: {looked}). "
+        "The operating manual is served verbatim rather than paraphrased, so there "
+        "is no fallback text to return. Reinstall billwright[mcp]."
+    )
+
+
 def build_server(
     profile: Path,
     *,
     assets: Path = DEFAULT_ASSETS,
-    out: Path = DEFAULT_OUT,
+    out: Path | None = None,
 ) -> FastMCP:
     """Wire the functions above onto a FastMCP server.
 
@@ -313,7 +354,7 @@ def build_server(
     @server.resource("billwright://agents", mime_type="text/markdown")
     def agents() -> str:
         """AGENTS.md — how to operate billwright. The single source, served verbatim."""
-        return (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        return manual()
 
     @server.tool
     def profile_info() -> dict[str, Any]:
@@ -382,7 +423,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--profile", help="profile directory to bill from")
     parser.add_argument("--assets", default=str(DEFAULT_ASSETS), help="assets directory")
-    parser.add_argument("--out", default=str(DEFAULT_OUT), help="where drafts are written")
+    parser.add_argument("--out", default=str(default_out()), help="where drafts are written")
     args = parser.parse_args(argv)
 
     try:

@@ -4,6 +4,22 @@ All notable changes to this project. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **A release workflow**, `.github/workflows/release.yml`, triggered by a `v*`
+  tag. It publishes through PyPI's trusted publishing, so there is no API token
+  in the repository, in a secret, or on anyone's laptop — the workflow's own
+  OIDC identity is exchanged for a credential that lasts minutes.
+
+  Build and publish are separate jobs: only the second can mint that credential,
+  and all it does is upload files it did not produce. Two guards run before
+  anything is uploaded — the tag must equal the version in `pyproject.toml`, and
+  the wheel must contain the three typeface files and `AGENTS.md`. The second is
+  the 0.2.0 regression made permanent: a wheel without the fonts renders client
+  invoices in a substituted face and says nothing about it.
+
 ## [0.2.0] — 2026-09-12
 
 ### Added

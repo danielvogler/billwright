@@ -1,0 +1,92 @@
+name: Release
+
+# Publishes to PyPI when a `v*` tag is pushed.
+#
+# There is no token anywhere — not in the repository, not in a secret, not on
+# anyone's laptop. PyPI's trusted publishing exchanges this workflow's OIDC
+# identity for a credential that lasts minutes. That makes three things in here
+# load-bearing rather than decorative, and PyPI matches on all of them: the
+# filename `release.yml`, the `pypi` environment, and `id-token: write`. Rename
+# any of them and the upload fails with a 403 that does not explain itself.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Build and publish are separate jobs on purpose. Only `publish` can mint a
+  # PyPI credential, and all it does is upload files it did not produce; the
+  # build — which runs hatchling and the dependency tree — never holds one.
+  build:
+    name: build and check the artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: "3.13"
+
+      - name: The tag must be the version being published
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(uv run --no-project python -c \
+            'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')
+          if [ "$tag" != "$version" ]; then
+            echo "tag $GITHUB_REF_NAME does not match pyproject version $version" >&2
+            exit 1
+          fi
+          echo "publishing $version"
+
+      - name: Build
+        run: uv build
+
+      # The regression that 0.2.0 exists to fix: the typeface was not in the
+      # wheel, so an installed copy typeset client invoices in a substituted
+      # font and said nothing. A release that ships that again is worse than no
+      # release, and this is the last point at which it is cheap to notice.
+      - name: The wheel must carry the fonts and the manual
+        run: |
+          wheel=$(ls dist/*.whl)
+          for entry in \
+            billwright/assets/fonts/Inter-Regular.otf \
+            billwright/assets/fonts/Inter-Medium.otf \
+            billwright/assets/fonts/Inter-SemiBold.otf \
+            billwright/assets/fonts/OFL.txt \
+            billwright/AGENTS.md
+          do
+            unzip -l "$wheel" | grep -q "$entry" || { echo "missing from wheel: $entry" >&2; exit 1; }
+          done
+          echo "wheel contents verified"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # the whole mechanism; without it there is no credential
+    steps:
+      - uses: astral-sh/setup-uv@v7
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      # `always`, not `automatic`: if trusted publishing is unavailable for any
+      # reason, fail rather than quietly looking for a token that should not
+      # exist.
+      - name: Publish
+        run: uv publish --trusted-publishing always

@@ -250,3 +250,10 @@ assets/reference/
 
 # uv
 .venv/
+
+# Finder and editor clutter. Finder drops .DS_Store into any directory it has
+# been opened in, and the file records that directory's contents — so it is
+# both noise and, in a repository organised around keeping company values out
+# of git, a small thing that lists filenames nobody chose to publish.
+.DS_Store
+._*

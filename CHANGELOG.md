@@ -9,16 +9,43 @@ follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - **A release workflow**, `.github/workflows/release.yml`, triggered by a `v*`
-  tag. It publishes through PyPI's trusted publishing, so there is no API token
-  in the repository, in a secret, or on anyone's laptop — the workflow's own
-  OIDC identity is exchanged for a credential that lasts minutes.
+  tag. Pushing the tag is the whole release: the workflow calls the same CI gate
+  `main` gets, builds, proves the wheel works, publishes to PyPI, and then
+  creates the GitHub release with the changelog section as its notes and the
+  sdist and wheel attached.
 
-  Build and publish are separate jobs: only the second can mint that credential,
-  and all it does is upload files it did not produce. Two guards run before
-  anything is uploaded — the tag must equal the version in `pyproject.toml`, and
-  the wheel must contain the three typeface files and `AGENTS.md`. The second is
-  the 0.2.0 regression made permanent: a wheel without the fonts renders client
-  invoices in a substituted face and says nothing about it.
+  It publishes through PyPI's trusted publishing, so there is no API token in
+  the repository, in a secret, or on anyone's laptop — the workflow's own OIDC
+  identity is exchanged for a credential that lasts minutes. Build and publish
+  are separate jobs: only the second can mint that credential, and all it does
+  is upload files it did not produce. The GitHub release runs only after PyPI
+  succeeds, and attaches the artifacts that were uploaded rather than a rebuild.
+
+  Three guards run before anything is uploaded: the tag must equal the version
+  in `pyproject.toml`, `CHANGELOG.md` must have a section for that version, and
+  the wheel must install into a clean virtualenv and render.
+
+- **`scripts/verify-wheel.sh`**, which installs a built wheel somewhere clean,
+  asserts that every face `fonts.FACES` declares is present along with the
+  licence and `AGENTS.md`, and renders the example bill with it. This is the
+  0.2.0 regression made permanent: a wheel without the typeface renders client
+  invoices in a substituted face and says nothing about it, and every test here
+  imports from the working tree where that is invisible.
+
+- **`scripts/changelog-section.sh`**, which prints one version's changelog
+  section and fails if it has none. The release workflow checks the entry with
+  it and renders the release notes with it, so notes that pass the check and
+  notes that get published cannot be different things.
+
+- **`make release-check`**, a local rehearsal of everything the workflow
+  checks — plus a clean working tree — before a tag exists to check it. With
+  `make build`, `make dist-check` and `make clean-dist` underneath it. A tag can
+  be deleted; a version on PyPI can only be yanked, never replaced.
+
+### Changed
+
+- `ci.yml` gained a `workflow_call` trigger so the release runs the gate itself
+  rather than a copy of it that drifts.
 
 ## [0.2.0] — 2026-09-12
 

@@ -334,6 +334,64 @@ logic in a module both can import, never in either entry point. `audit.py` and
 
 ---
 
+## Releasing it
+
+**Pushing a `vX.Y.Z` tag is the whole release.** `release.yml` runs the same CI
+gate main gets, builds, proves the wheel renders once installed, uploads to
+PyPI over trusted publishing, and then creates the GitHub release with the
+changelog section as its notes and the sdist and wheel attached. Nothing else
+publishes, and nothing publishes without a tag.
+
+There is no PyPI token anywhere — not in the repository, not in a GitHub
+secret, not on a laptop. PyPI's trusted publishing exchanges the workflow's own
+OIDC identity for a credential that lasts minutes. **Three things are
+load-bearing and PyPI matches on all of them: the filename `release.yml`, the
+environment named `pypi`, and `id-token: write`.** Rename any of them and the
+upload fails with a 403 that does not explain itself.
+
+To cut a release:
+
+1. Bump `version` in `pyproject.toml`, then `uv lock` and commit `uv.lock`
+   with it. The version is authored in one place — `billwright.__version__`
+   reads it back from the installed metadata, and it is the string that lands
+   in every PDF's `/Creator` — but the lock file mirrors it, and CI installs
+   with `--locked`, so a bump without a relock fails the gate before it fails
+   anything interesting.
+2. Move the `[Unreleased]` entries in `CHANGELOG.md` under a
+   `## [<version>] — <date>` heading. The workflow refuses a tag whose version
+   has no such section, and the section becomes the release notes —
+   `scripts/changelog-section.sh <version>` prints exactly what will be
+   published, so there is no second place to keep release notes in step.
+3. `make release-check`. It runs everything CI runs, builds, runs `twine
+   check`, installs the wheel into a clean virtualenv and renders the example
+   bill with it, confirms the changelog entry and a clean tree, then prints the
+   two commands below. **Run this before tagging**: a tag can be deleted, but a
+   version uploaded to PyPI can only be yanked, never replaced.
+4. `git tag -a v<version> -m "v<version>" && git push origin v<version>`.
+
+`scripts/verify-wheel.sh` is the same script the workflow runs, which is why
+the rehearsal and the release cannot drift apart. It exists because every test
+here imports from the working tree: 0.2.0 shipped a wheel without the typeface,
+and an installed copy typeset client invoices in a substituted face without
+saying so. Presence of the faces *and* a real render, because the first is what
+went wrong and the second is what the faces are for.
+
+The GitHub release runs only after PyPI succeeds — one announcing a version
+that never reached PyPI points at nothing installable — and attaches the
+artifacts that were uploaded rather than a rebuild, so what is attached is what
+is on PyPI.
+
+**Never move a tag that has been pushed.** If a release is wrong, the fix is
+the next version.
+
+**The first release needs PyPI configured once.** On PyPI, under *Publishing*,
+add a pending trusted publisher: project `billwright`, owner `danielvogler`,
+repository `billwright`, workflow `release.yml`, environment `pypi`. Then
+create a GitHub environment named `pypi` on the repository. Until both exist,
+the publish step fails at the last hop with every earlier check green.
+
+---
+
 ## Definition of done
 
 - [ ] `make check` passes

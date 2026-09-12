@@ -22,7 +22,8 @@ endif
 .DEFAULT_GOAL := help
 
 .PHONY: help setup bill statement new list check-bills preview archive \
-        test lint fmt scan types hooks doctor check clean
+        test lint fmt scan types hooks doctor check clean \
+        clean-dist build dist-check release-check
 
 help:  ## List available targets
 	@grep -hE '^[a-zA-Z_.-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -93,6 +94,34 @@ hooks:  ## Install the pre-commit hooks (run once)
 
 check: lint scan types test check-bills  ## Everything CI runs
 	uv run pre-commit run --all-files
+
+# ---- releasing ----
+#
+# Pushing a `v*` tag is the whole release; see AGENTS.md "Releasing it". These
+# targets run the same scripts the workflow runs, so the rehearsal and the
+# release cannot drift apart.
+
+clean-dist:  ## Remove built artifacts
+	rm -rf dist
+
+build: clean-dist  ## Build the sdist and wheel into dist/
+	uv build
+
+dist-check: build  ## Build, then prove the wheel renders once installed
+	uvx twine check dist/*
+	scripts/verify-wheel.sh dist/*.whl
+
+# Everything the release workflow checks, before a tag exists to check it. A tag
+# can be deleted; a version uploaded to PyPI can only be yanked, never replaced.
+release-check: check dist-check  ## Rehearse a release locally
+	@version=$$(uv run python -c 'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])'); \
+	scripts/changelog-section.sh "$$version" > /dev/null; \
+	test -z "$$(git status --porcelain)" \
+		|| { echo "working tree is dirty; commit before tagging" >&2; exit 1; }; \
+	echo; \
+	echo "ready to release $$version. To publish:"; \
+	echo "  git tag -a v$$version -m 'v$$version'"; \
+	echo "  git push origin v$$version"
 
 # ---- housekeeping ----
 

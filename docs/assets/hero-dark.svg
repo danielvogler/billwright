@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 680" width="1280" height="680" role="img" aria-labelledby="ht hd">
+  <title id="ht">Set up once. Then paste line items in any format</title>
+  <desc id="hd">On the left, the inputs, which your coding agent walks you through and writes down for you. Once: your company details, read off an old invoice; your look, from your website or logo; and your clients and rates. For each bill: the line items, pasted in any format, from Excel, an email or a note. Once a year: expenses and balances. In the middle, billwright, plain Python code that holds no company value and computes every franc in exact decimals: Python sums the line items and the AI never does the arithmetic; the Swiss QR payment part is built from that same total; revenue is counted in the year it was paid; and guards catch numbering gaps and keep private values out of git. On the right, the PDFs it produces: the invoice with its QR payment part, the annual accounts with profit and loss and a statement of assets, and a one-page key figures sheet for the tax return. The amount your client scans is the amount you billed.</desc>
+
+  <defs>
+    <filter id="lift" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="7" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="lift2" x="-20%" y="-20%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#2F5C86" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="680" fill="#0E0E10"/>
+  <rect y="679" width="1280" height="1" fill="#2A2A2E"/>
+
+  <g font-family="Inter, ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+
+    <circle cx="60" cy="48" r="4" fill="#6FA3D6"/>
+    <text x="76" y="53" font-size="13" font-weight="600" letter-spacing="2.2" fill="#A3A39D">GIVE YOUR AGENT AN OLD INVOICE, A SPREADSHEET, OR NOTHING AT ALL</text>
+    <text x="56" y="112" font-size="42" font-weight="700" letter-spacing="-1.6" fill="#FDFDFB">Set up once. Then paste line items in any format.</text>
+
+    <!-- wires in, wires out -->
+    <g fill="none" stroke="#3A3A40" stroke-width="1.6" stroke-linecap="round">
+      <path d="M 286 235 C 314 235, 314 290, 340 290"/>
+      <path d="M 286 303 C 314 303, 314 335, 340 335"/>
+      <path d="M 286 371 C 314 371, 314 380, 340 380"/>
+      <path d="M 286 439 C 314 439, 314 425, 340 425"/>
+      <path d="M 286 507 C 314 507, 314 470, 340 470"/>
+    </g>
+    <g fill="none" stroke="#4F7299" stroke-width="2" stroke-linecap="round">
+      <path d="M 920 380 C 958 380, 956 264, 994 264"/>
+      <path d="M 920 380 C 958 380, 956 380, 994 380"/>
+      <path d="M 920 380 C 958 380, 956 496, 994 496"/>
+    </g>
+    <path d="M 994 264 l-9 -4.5 v9 z" fill="#4F7299"/>
+    <path d="M 994 380 l-9 -4.5 v9 z" fill="#4F7299"/>
+    <path d="M 994 496 l-9 -4.5 v9 z" fill="#4F7299"/>
+
+    <!-- what you write -->
+    <text x="56" y="190" font-size="10.5" font-weight="700" letter-spacing="1.4" fill="#A3A39D">INPUTS · YOUR AGENT GUIDES</text>
+    <rect x="56" y="206" width="230" height="58" rx="12" fill="#17171A" stroke="#2A2A2E" stroke-width="1" filter="url(#lift)"/>
+    <text x="76" y="231" font-size="14.5" font-weight="700" fill="#FDFDFB">Your company</text>
+    <text x="268" y="230" text-anchor="end" font-size="9.5" font-weight="700" letter-spacing="1.2" fill="#A3A39D">ONCE</text>
+    <text x="76" y="250" font-size="12.5" fill="#A3A39D">Read off an old invoice</text>
+    <rect x="56" y="274" width="230" height="58" rx="12" fill="#17171A" stroke="#2A2A2E" stroke-width="1" filter="url(#lift)"/>
+    <text x="76" y="299" font-size="14.5" font-weight="700" fill="#FDFDFB">Your look</text>
+    <text x="268" y="298" text-anchor="end" font-size="9.5" font-weight="700" letter-spacing="1.2" fill="#A3A39D">ONCE</text>
+    <text x="76" y="318" font-size="12.5" fill="#A3A39D">From your website or logo</text>
+    <rect x="56" y="342" width="230" height="58" rx="12" fill="#17171A" stroke="#2A2A2E" stroke-width="1" filter="url(#lift)"/>
+    <text x="76" y="367" font-size="14.5" font-weight="700" fill="#FDFDFB">Clients and rates</text>
+    <text x="268" y="366" text-anchor="end" font-size="9.5" font-weight="700" letter-spacing="1.2" fill="#A3A39D">ONCE</text>
+    <text x="76" y="386" font-size="12.5" fill="#A3A39D">Who you bill, at what rate</text>
+    <rect x="56" y="410" width="230" height="58" rx="12" fill="#17171A" stroke="#6FA3D6" stroke-width="1.5" filter="url(#lift)"/>
+    <text x="76" y="435" font-size="14.5" font-weight="700" fill="#FDFDFB">Line items</text>
+    <text x="268" y="434" text-anchor="end" font-size="9.5" font-weight="700" letter-spacing="1.2" fill="#6FA3D6">EACH BILL</text>
+    <text x="76" y="454" font-size="12.5" fill="#A3A39D">From Excel, an email, a note</text>
+    <rect x="56" y="478" width="230" height="58" rx="12" fill="#17171A" stroke="#2A2A2E" stroke-width="1" filter="url(#lift)"/>
+    <text x="76" y="503" font-size="14.5" font-weight="700" fill="#FDFDFB">Year-end figures</text>
+    <text x="268" y="502" text-anchor="end" font-size="9.5" font-weight="700" letter-spacing="1.2" fill="#A3A39D">YEARLY</text>
+    <text x="76" y="522" font-size="12.5" fill="#A3A39D">Expenses and balances</text>
+
+    <!-- what it computes -->
+    <rect x="340" y="190" width="580" height="380" rx="28" fill="#2F5C86" filter="url(#lift2)"/>
+    <text x="370" y="238" font-size="24" font-weight="700" letter-spacing="-0.6" fill="#FFFFFF">billwright</text>
+    <text x="370" y="262" font-size="13.5" font-weight="500" fill="#C4D4E4">Holds no company value. Computes every franc in exact decimals.</text>
+
+    <rect x="370" y="282" width="252" height="96" rx="16" fill="#FFFFFF" fill-opacity="0.11" stroke="#FFFFFF" stroke-opacity="0.24"/>
+    <text x="392" y="312" font-size="16" font-weight="700" fill="#FFFFFF">Totals</text>
+    <text x="392" y="336" font-size="12.5" fill="#D5E1EC">Python sums the line items —</text>
+    <text x="392" y="356" font-size="12.5" fill="#D5E1EC">the AI never does the arithmetic</text>
+
+    <rect x="638" y="282" width="252" height="96" rx="16" fill="#FFFFFF" fill-opacity="0.11" stroke="#FFFFFF" stroke-opacity="0.24"/>
+    <text x="660" y="312" font-size="16" font-weight="700" fill="#FFFFFF">QR bill</text>
+    <text x="660" y="336" font-size="12.5" fill="#D5E1EC">Optional Swiss payment part,</text>
+    <text x="660" y="356" font-size="12.5" fill="#D5E1EC">built from that same total</text>
+
+    <rect x="370" y="394" width="252" height="96" rx="16" fill="#FFFFFF" fill-opacity="0.11" stroke="#FFFFFF" stroke-opacity="0.24"/>
+    <text x="392" y="424" font-size="16" font-weight="700" fill="#FFFFFF">Accounts</text>
+    <text x="392" y="448" font-size="12.5" fill="#D5E1EC">Revenue in the year it was paid,</text>
+    <text x="392" y="468" font-size="12.5" fill="#D5E1EC">not the year it was invoiced</text>
+
+    <rect x="638" y="394" width="252" height="96" rx="16" fill="#FFFFFF" fill-opacity="0.11" stroke="#FFFFFF" stroke-opacity="0.24"/>
+    <text x="660" y="424" font-size="16" font-weight="700" fill="#FFFFFF">Guards</text>
+    <text x="660" y="448" font-size="12.5" fill="#D5E1EC">check: gaps and duplicates</text>
+    <text x="660" y="468" font-size="12.5" fill="#D5E1EC">scan: no private value in git</text>
+
+    <rect x="370" y="506" width="520" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.14" stroke="#FFFFFF" stroke-opacity="0.26"/>
+    <circle cx="394" cy="526" r="4.5" fill="#FFFFFF"/>
+    <text x="410" y="531" font-size="13.5" font-weight="600" fill="#FFFFFF">The amount your client scans is the amount you billed.</text>
+
+    <!-- what comes out -->
+    <text x="994" y="190" font-size="10.5" font-weight="700" letter-spacing="1.4" fill="#A3A39D">OUTPUTS · PDF</text>
+    <rect x="994" y="214" width="230" height="100" rx="16" fill="#17171A" stroke="#2A2A2E" stroke-width="1" filter="url(#lift)"/>
+    <path d="M 999.42 218 A 16 16 0 0 1 1010 214 L 1208 214 A 16 16 0 0 1 1218.58 218 Z" fill="#2F5C86"/>
+    <text x="1018" y="252" font-size="19" font-weight="700" letter-spacing="-0.4" fill="#FDFDFB">Invoice</text>
+    <text x="1018" y="276" font-size="13" fill="#A3A39D">With the QR payment part</text>
+    <text x="1018" y="296" font-size="13" fill="#A3A39D">Ready for the ten-year archive</text>
+
+    <rect x="994" y="330" width="230" height="100" rx="16" fill="#17171A" stroke="#2A2A2E" stroke-width="1" filter="url(#lift)"/>
+    <path d="M 999.42 334 A 16 16 0 0 1 1010 330 L 1208 330 A 16 16 0 0 1 1218.58 334 Z" fill="#54545A"/>
+    <text x="1018" y="368" font-size="19" font-weight="700" letter-spacing="-0.4" fill="#FDFDFB">Annual accounts</text>
+    <text x="1018" y="392" font-size="13" fill="#A3A39D">Profit and loss</text>
+    <text x="1018" y="412" font-size="13" fill="#A3A39D">Statement of assets</text>
+
+    <rect x="994" y="446" width="230" height="100" rx="16" fill="#17171A" stroke="#2A2A2E" stroke-width="1" filter="url(#lift)"/>
+    <path d="M 999.42 450 A 16 16 0 0 1 1010 446 L 1208 446 A 16 16 0 0 1 1218.58 450 Z" fill="#54545A"/>
+    <text x="1018" y="484" font-size="19" font-weight="700" letter-spacing="-0.4" fill="#FDFDFB">Key figures</text>
+    <text x="1018" y="508" font-size="13" fill="#A3A39D">One page of figures</text>
+    <text x="1018" y="528" font-size="13" fill="#A3A39D">for the tax return</text>
+
+    <circle cx="60" cy="616" r="4" fill="#6FA3D6"/>
+    <text x="76" y="621" font-size="14" fill="#A3A39D">Drive it with a coding agent reading AGENTS.md, over MCP, or from the plain command line.</text>
+    <text x="76" y="644" font-size="14" fill="#A3A39D">It reads and writes files on your machine: no account, no server, no telemetry.</text>
+  </g>
+</svg>

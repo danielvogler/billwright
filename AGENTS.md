@@ -212,8 +212,16 @@ overflows, measure before adjusting:
 box.position_y / 96 * 25.4   # mm
 ```
 
-**9. Every change to a *tracked* file gets a [CHANGELOG.md](CHANGELOG.md)
-entry** under an `[Unreleased]` heading, added above the current release.
+**9. [CHANGELOG.md](CHANGELOG.md) is written at release time, from the commit
+messages — never in a feature branch.** Do not touch it in an ordinary commit.
+Two open branches that each add a line under the same heading conflict on that
+line every time, and the commit history already records what changed. Cutting
+a release is when the commits since the last tag become a section; see
+[Releasing it](#releasing-it).
+
+That makes every commit message the draft of a changelog line. Write the subject
+and body so that someone who installed this software would recognise the
+change: what it does for them and why, not which function moved.
 
 **Using the tool is not a change to it.** Creating a profile under `data/`,
 adding a client, issuing a bill, closing a year — none of these get a changelog
@@ -357,9 +365,12 @@ To cut a release:
    in every PDF's `/Creator` — but the lock file mirrors it, and CI installs
    with `--locked`, so a bump without a relock fails the gate before it fails
    anything interesting.
-2. Move the `[Unreleased]` entries in `CHANGELOG.md` under a
-   `## [<version>] — <date>` heading. The workflow refuses a tag whose version
-   has no such section, and the section becomes the release notes —
+2. Write the `## [<version>] — <date>` section of `CHANGELOG.md` from the
+   commits since the last tag — `git log --no-merges --format='%s%n%b'
+   v<previous>..HEAD` — grouped under Added, Changed and Fixed. Leave out what
+   nobody who installed it would notice, and apply rule 9's limits to every
+   line. The workflow refuses a tag whose version has no such section, and the
+   section becomes the release notes —
    `scripts/changelog-section.sh <version>` prints exactly what will be
    published, so there is no second place to keep release notes in step.
 3. `make release-check`. It runs everything CI runs, builds, runs `twine

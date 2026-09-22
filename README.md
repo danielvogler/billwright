@@ -11,9 +11,17 @@
 [![mypy](https://img.shields.io/badge/types-checked-0E0E10.svg)](https://mypy-lang.org/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-0E0E10.svg)](https://pre-commit.com/)
 
-**Swiss invoices your client can pay by scanning, and the year-end accounts to
-match.** Tell a coding agent about your company once. Get PDFs you can send to a
-client and hand to the tax office — no subscription, no account, no server.
+## Quick start
+
+Open this repository in your coding agent — Claude Code, Cursor or any other —
+and say:
+
+```
+Read AGENTS.md, then set up a profile for my company and issue a bill.
+```
+
+It walks you through the setup once, then turns the line items you paste into a
+finished invoice.
 
 <p align="center">
   <img src="docs/example-invoice.png" alt="A rendered invoice: wordmark, line items, computed total, and the Swiss QR payment part at the foot" width="380">
@@ -22,35 +30,10 @@ client and hand to the tax office — no subscription, no account, no server.
 
 <p align="center"><em>Both of these render from a fresh clone, with no configuration.</em></p>
 
-## What you get
-
-- **A QR bill that actually works.** The Swiss payment part is generated from
-  the invoice itself, so the amount your client scans is the amount you billed.
-  It cannot drift, because nothing types it twice.
-- **The year-end accounts too.** Erfolgsrechnung and Vermögensstand for the tax
-  office, plus a one-page figures sheet to copy into the return. Revenue comes
-  from the invoices you actually got paid for, in the year you were paid.
-- **Your books stay yours.** Everything lives in text files on your own machine.
-  The program has no account, no server and no telemetry: it reads and writes
-  files and talks to nothing. Nothing stops working when somebody's startup
-  does. (If you use a coding agent to set it up, what you show *the agent* goes
-  wherever that agent's model runs — see
-  [What the agent sees](#what-the-agent-sees).)
-- **Arithmetic you can trust.** Totals are calculated from the line items and
-  never stored, so an invoice cannot disagree with itself — which the hand-made
-  document this replaces did, by CHF 10.
-- **It looks like your company, not like a template.** Point the agent at your
-  website or an old invoice and it works out your colours, your wordmark and
-  your typeface, and writes them into the profile. You are not stuck with the
-  neutral default, and you do not have to name a hex code to change it.
-- **The same invoice, forever.** Re-rendering a bill from three years ago
-  produces the identical file, byte for byte, from the same version of
-  billwright — and the PDF metadata records which version that was. That is what
-  makes the archive evidence rather than a copy.
-
-Your company details — address, bank details, clients, rates, colours — live in
-a folder of small text files. The program itself holds none of them, so one
-install bills for as many companies as you like.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
+  <img alt="Set up once, then paste line items in any format. Your coding agent guides you through the inputs: your company, your look, and clients and rates once; line items for each bill; year-end figures once a year. billwright, plain Python holding no company value, computes every franc — the AI never does the arithmetic — and builds the optional Swiss QR payment part from that same total. Out come the invoice, the annual accounts and a key-figures sheet for the tax return." src="docs/assets/hero-light.svg">
+</picture>
 
 ---
 
@@ -133,6 +116,42 @@ So choose knowingly:
 
 Either way, once the profile exists, issuing bills is a local command that sends
 nothing anywhere.
+
+---
+
+## What you get
+
+**Swiss invoices your client can pay by scanning, and the year-end accounts to
+match.** Tell a coding agent about your company once. Get PDFs you can send to a
+client and hand to the tax office — no subscription, no account, no server.
+
+- **A QR bill that actually works.** The Swiss payment part is generated from
+  the invoice itself, so the amount your client scans is the amount you billed.
+  It cannot drift, because nothing types it twice.
+- **The year-end accounts too.** Erfolgsrechnung and Vermögensstand for the tax
+  office, plus a one-page figures sheet to copy into the return. Revenue comes
+  from the invoices you actually got paid for, in the year you were paid.
+- **Your books stay yours.** Everything lives in text files on your own machine.
+  The program has no account, no server and no telemetry: it reads and writes
+  files and talks to nothing. Nothing stops working when somebody's startup
+  does. (If you use a coding agent to set it up, what you show *the agent* goes
+  wherever that agent's model runs — see
+  [What the agent sees](#what-the-agent-sees).)
+- **Arithmetic you can trust.** Totals are calculated from the line items and
+  never stored, so an invoice cannot disagree with itself — which the hand-made
+  document this replaces did, by CHF 10.
+- **It looks like your company, not like a template.** Point the agent at your
+  website or an old invoice and it works out your colours, your wordmark and
+  your typeface, and writes them into the profile. You are not stuck with the
+  neutral default, and you do not have to name a hex code to change it.
+- **The same invoice, forever.** Re-rendering a bill from three years ago
+  produces the identical file, byte for byte, from the same version of
+  billwright — and the PDF metadata records which version that was. That is what
+  makes the archive evidence rather than a copy.
+
+Your company details — address, bank details, clients, rates, colours — live in
+a folder of small text files. The program itself holds none of them, so one
+install bills for as many companies as you like.
 
 ---
 

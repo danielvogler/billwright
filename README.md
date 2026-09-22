@@ -23,17 +23,17 @@ Read AGENTS.md, then set up a profile for my company and issue a bill.
 It walks you through the setup once, then turns the line items you paste into a
 finished invoice.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
-  <img alt="Set up once, then paste line items in any format. Your coding agent guides you through the inputs: your company, your look, and clients and rates once; line items for each bill; year-end figures once a year. billwright, plain Python holding no company value, computes every franc — the AI never does the arithmetic — and builds the optional Swiss QR payment part from that same total. Out come the invoice, the annual accounts and a key-figures sheet for the tax return." src="docs/assets/hero-light.svg">
-</picture>
-
 <p align="center">
   <img src="docs/example-invoice.png" alt="A rendered invoice: wordmark, line items, computed total, and the Swiss QR payment part at the foot" width="380">
   <img src="docs/example-statement.png" alt="A rendered year-end statement: Erfolgsrechnung and Vermoegensstand" width="380">
 </p>
 
 <p align="center"><em>Both of these render from a fresh clone, with no configuration.</em></p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
+  <img alt="Set up once, then paste line items in any format. Your coding agent guides you through the inputs: your company, your look, and clients and rates once; line items for each bill; year-end figures once a year. billwright, plain Python holding no company value, computes every franc — the AI never does the arithmetic — and builds the optional Swiss QR payment part from that same total. Out come the invoice, the annual accounts and a key-figures sheet for the tax return." src="docs/assets/hero-light.svg">
+</picture>
 
 ---
 

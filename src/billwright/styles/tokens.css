@@ -86,9 +86,9 @@ p {
   color: var(--accent);
 }
 
-/* The wordmark is typeset, not an image: the brand logo is literally two lines
- * of Inter Medium with a red period. Setting it in CSS keeps it sharp at any
- * size and keeps it in step with the rest of the document automatically. */
+/* The wordmark is typeset, not an image: setting it in CSS keeps it sharp at
+ * any size and in step with the rest of the document automatically. A drawn
+ * mark, when brand.toml names one, sits beside it (below). */
 .wordmark {
   font-weight: 500;
   font-size: var(--size-wordmark);
@@ -98,6 +98,34 @@ p {
   text-transform: uppercase;
 }
 
-.wordmark .dot {
+.wordmark .dot,
+.wordmark__accent {
   color: var(--accent);
+}
+
+/* A logo, when brand.toml names one, sits before the text and scales with the
+ * wordmark size, so a profile resizes both with one token. */
+/* Inline blocks rather than flex: they follow the container's text-align (left
+ * on the bill, right on the statement), and WeasyPrint measures their width
+ * exactly, where a flex gap let the wordmark run past the right margin. */
+.wordmark--with-mark {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* An explicit square box: a logo's intrinsic size is not reliably known when
+ * the header is laid out. A non-square mark keeps its ratio inside it. */
+.wordmark__mark {
+  display: inline-block;
+  vertical-align: middle;
+  height: 1.9em;
+  width: 1.9em;
+  margin-right: 0.45em;
+  object-fit: contain;
+}
+
+.wordmark__text {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: left;
 }

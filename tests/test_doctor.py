@@ -94,7 +94,7 @@ def test_an_empty_uid_is_a_warning_not_an_error(broken):
 def test_a_too_long_name_is_caught(broken):
     """Over 70 characters the bank rejects the payment part, after you sent it."""
     # Replaces the issuer name and the address name, which is the QR field.
-    edit_company(broken, 'name = "EXAMPLE CONSULTING"', f'name = "{"A" * 71}"')
+    edit_company(broken, 'name = "BILLWRIGHT"', f'name = "{"A" * 71}"')
     assert "70" in messages(check_company(broken))
 
 

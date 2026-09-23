@@ -76,13 +76,20 @@ Record the structure as data so another company supplies its own:
 
 ```toml
 [wordmark]
+mark = "logo.svg" # optional: a drawn mark in the profile, .svg or .png
 line1 = "…"       # optional first line
-line2 = "…"       # the line carrying the accent character
-dot = "."         # the accent character
+line2 = "…"       # the main line
+accent = "…"      # optional: text straight after line2, in the accent colour
+dot = "."         # the accent character; "" for none, "." if absent
 tagline = "…"     # optional, usually suppressed on dense documents
 ```
 
-If the logo *is* drawn, embed the SVG and tighten its `viewBox` rather than
+Every key is optional. Case, weight and size come from the packaged styles;
+change them in `<profile>/styles/overrides.css` — `example/` does exactly that
+for its lowercase wordmark.
+
+If the logo *is* drawn, save it into the profile, name it as `mark`, and
+tighten its `viewBox` rather than
 cropping a raster — the padding in a square logo asset is deliberate whitespace
 for social avatars and is wrong in a letterhead. To compute a tight box for
 typeset text, measure with `fontTools`:

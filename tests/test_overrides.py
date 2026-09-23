@@ -22,9 +22,13 @@ BILL = "RE-26001"
 
 @pytest.fixture
 def custom(profile, tmp_path):
-    """A copy of the sample profile that a test may add overrides to."""
+    """A copy of the sample profile, without its own styles, to add overrides to.
+
+    The sample ships a stylesheet of its own to show the seam in use; each test
+    here starts from none, so what it adds is the only override present.
+    """
     root = tmp_path / "profile"
-    shutil.copytree(profile, root)
+    shutil.copytree(profile, root, ignore=shutil.ignore_patterns("styles"))
     return root
 
 
@@ -32,15 +36,15 @@ def text_of(path):
     return "\n".join(page.extract_text() for page in PdfReader(str(path)).pages)
 
 
-def test_without_overrides_nothing_changes(profile, assets, tmp_path):
+def test_without_overrides_nothing_changes(custom, assets, tmp_path):
     """The escape hatch must cost nothing when it is not used."""
-    company, brand = load_company(profile), load_brand(profile)
-    bill = find_bill(profile, BILL)
+    company, brand = load_company(custom), load_brand(custom)
+    bill = find_bill(custom, BILL)
 
     plain = tmp_path / "plain.pdf"
     with_profile = tmp_path / "with.pdf"
     render_bill(bill, company, brand, assets, plain)
-    render_bill(bill, company, brand, assets, with_profile, profile=profile)
+    render_bill(bill, company, brand, assets, with_profile, profile=custom)
 
     assert plain.read_bytes() == with_profile.read_bytes()
 

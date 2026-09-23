@@ -20,11 +20,21 @@ accent-soft = "#DCE6EF"
 accent-faint = "#F1F5F9"
 paper = "#FFFFFF"
 
-# No drawn mark: the logo is two lines of the brand font with an accent-coloured
-# period. Typeset rather than embedded, so it stays sharp at any size and in step
-# with the rest of the document. Omit the whole table for no wordmark at all.
+# The wordmark is typeset in the brand font, so it stays sharp at any size and
+# in step with the rest of the document. Every key is optional; omit the whole
+# table for no wordmark at all.
+#
+#   mark     a logo file in this directory (.svg or .png), drawn before the text
+#   line1    an optional first line above the main one
+#   line2    the main line
+#   accent   text straight after line2, in the accent colour
+#   dot      a closing mark in the accent colour; "" for none, "." if absent
+#   tagline  a small line underneath, usually the website
+#
+# The lowercase setting comes from styles/overrides.css, the profile's own CSS.
 [wordmark]
-line1 = "EXAMPLE"
-line2 = "CONSULTING"
-dot = "."
+mark = "mark.svg"
+line2 = "bill"
+accent = "wright"
+dot = ""
 tagline = "example.com"

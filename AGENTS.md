@@ -81,7 +81,7 @@ ambiguous, ask about that one field rather than guessing the lot.
 | "Zahlbar innert 30 Tagen" | `company.toml`: `default_terms_days` |
 | Recipient block | `clients/<key>.toml` |
 | Line items and their unit prices | `rates.toml` service categories |
-| Logo colours and typeface | `brand.toml`, or leave the neutral default |
+| Logo, colours and typeface | `brand.toml` (a drawn logo goes in the profile as `mark`), or leave the default |
 
 **Never invent a financial or legal value, and never trust your own reading of
 one.** An invented or misread IBAN sends money to a stranger; an invented VAT

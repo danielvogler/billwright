@@ -2,15 +2,32 @@
   The wordmark, typeset from brand.toml.
 
   Structure comes from the brand profile so a second company supplies its own
-  two lines (or one) without editing this file. The accent-coloured period is
-  the whole mark — there is no drawn logo to embed.
+  lines, colours and logo without editing this file. Every key is optional and
+  read with .get(): under StrictUndefined an absent key is an error, not a
+  falsy value, and a one-line wordmark should not need two empty strings.
+
+    mark      a logo file in the profile, drawn before the text (see load.py)
+    line1     an optional first line
+    line2     the main line
+    accent    text straight after line2, in the accent colour
+    dot       the accent-coloured closing mark; "" means none, absent means "."
+    tagline   a small line underneath, usually the website
 #}
-<div class="wordmark">
-  {% if brand.wordmark.line1 %}
-    <div>{{ brand.wordmark.line1 }}</div>
+{% set wm = brand.wordmark %}
+{% set dot = wm.get('dot', '.') %}
+{% macro lines() %}
+  {% if wm.get('line1') %}
+    <div>{{ wm.get('line1') }}</div>
   {% endif %}
-  <div>{{ brand.wordmark.line2 }}<span class="dot">{{ brand.wordmark.dot | default('.', true) }}</span></div>
-</div>
-{% if brand.wordmark.tagline and show_tagline | default(true) %}
-  <div class="head__tagline">{{ brand.wordmark.tagline }}</div>
+  <div>{{ wm.get('line2', '') }}{% if wm.get('accent') %}<span class="wordmark__accent">{{ wm.get('accent') }}</span>{% endif %}{% if dot %}<span class="dot">{{ dot }}</span>{% endif %}</div>
+{% endmacro %}
+{% if brand.mark %}
+  {# One line on purpose: these are inline blocks, and a line break between
+     them would render as a space on top of the logo's margin. #}
+  <div class="wordmark wordmark--with-mark"><img class="wordmark__mark" src="{{ brand.mark }}" alt=""><div class="wordmark__text">{{ lines() }}</div></div>
+{% else %}
+  <div class="wordmark">{{ lines() }}</div>
+{% endif %}
+{% if wm.get('tagline') and show_tagline | default(true) %}
+  <div class="head__tagline">{{ wm.get('tagline') }}</div>
 {% endif %}

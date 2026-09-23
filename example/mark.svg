@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="billwright">
+  <!-- Three line items narrowing into one point: the total. -->
+  <rect width="64" height="64" rx="15" fill="#2F5C86"/>
+  <rect x="14" y="16" width="36" height="6.5" rx="3.25" fill="#FFFFFF"/>
+  <rect x="14" y="28.75" width="25" height="6.5" rx="3.25" fill="#FFFFFF" fill-opacity="0.72"/>
+  <rect x="14" y="41.5" width="14" height="6.5" rx="3.25" fill="#FFFFFF" fill-opacity="0.45"/>
+  <circle cx="44.5" cy="44.75" r="5.25" fill="#FFFFFF"/>
+</svg>

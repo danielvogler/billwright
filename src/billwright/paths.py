@@ -5,9 +5,10 @@ call site. Two callers spelling the same invoice differently is how an archive
 stops being a series — and the archive is the ten-year record (``OR Art. 958f``),
 so a name is not a cosmetic decision.
 
-**Nothing here is derived from where the package sits**, with one exception:
-`DEFAULT_ASSETS`, which is the vendored typeface and genuinely does travel with
-the engine. Everything else follows the profile or the working directory.
+**Nothing here is derived from where the package sits**, with two exceptions
+that genuinely travel with the engine: `DEFAULT_ASSETS`, the vendored typeface,
+and `PACKAGED_EXAMPLE`, the sample profile `init-profile` starts from. Neither
+is ever written to. Everything else follows the profile or the working directory.
 
 That distinction is the whole point of this module. These constants were once
 computed from ``Path(__file__).parents[2]`` — the repository root in a clone,
@@ -32,6 +33,22 @@ PACKAGE_ROOT = Path(__file__).resolve().parent
 #: here and nowhere else in this module: a typeface is part of the engine, not
 #: a company fact, so `pip install billwright` must render without flags.
 DEFAULT_ASSETS = PACKAGE_ROOT / "assets"
+
+#: The sample profile, copied into the wheel at build time (see pyproject.toml),
+#: so `init-profile` has a brand to start from without a clone. Absent when
+#: running from a source tree, where ./example is the same files.
+PACKAGED_EXAMPLE = PACKAGE_ROOT / "example"
+
+
+def sample_profile(cwd: Path) -> Path:
+    """The profile `init-profile` copies its starting brand from.
+
+    ./example when there is one — a clone, or a project that keeps its own —
+    and otherwise the copy shipped inside the package.
+    """
+    local = cwd / "example"
+    return local if (local / "brand.toml").is_file() else PACKAGED_EXAMPLE
+
 
 #: Directory names, so the two records are spelled once.
 ARCHIVE_DIRNAME = "archive"

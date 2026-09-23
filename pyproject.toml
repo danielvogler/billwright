@@ -77,6 +77,9 @@ packages = ["src/billwright"]
 # in at build time: a second tracked copy is the one that goes stale.
 [tool.hatch.build.targets.wheel.force-include]
 "AGENTS.md" = "billwright/AGENTS.md"
+# The fictional sample profile, for the same reason: `init-profile` starts from
+# its brand, and an installed copy has no clone to take it from.
+"example" = "billwright/example"
 
 [tool.billwright]
 # The active company profile. Everything company-specific lives under data/ and

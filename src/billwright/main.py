@@ -16,6 +16,7 @@ from .paths import (
     bill_target,
     default_out,
     legacy_archive_note,
+    sample_profile,
     statement_dir,
     statement_stem,
 )
@@ -190,7 +191,7 @@ def cmd_init_profile(args: argparse.Namespace) -> int:
     from .scaffold import write_profile
 
     target = Path(args.into)
-    source = Path(args.source) if args.source else Path.cwd() / "example"
+    source = Path(args.source) if args.source else sample_profile(Path.cwd())
     try:
         written = write_profile(target, brand_source=source)
     except (FileExistsError, FileNotFoundError) as exc:
@@ -319,7 +320,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--from",
         dest="source",
         default="",
-        help="profile to take brand.toml from (default: ./example)",
+        help="profile to take brand.toml from (default: ./example, else the sample in the package)",
     )
     init.set_defaults(func=cmd_init_profile)
 

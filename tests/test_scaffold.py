@@ -10,6 +10,8 @@ import tomllib
 import pytest
 
 from billwright.doctor import Level, check_company, diagnose
+from billwright.load import load_brand
+from billwright.paths import PACKAGED_EXAMPLE, sample_profile
 from billwright.scaffold import write_profile
 
 
@@ -74,6 +76,25 @@ def test_the_brand_is_copied_rather_than_emptied(profile, tmp_path):
     """A blank palette renders a blank document; the neutral default is usable."""
     write_profile(tmp_path / "new", brand_source=profile)
     assert load(tmp_path / "new" / "brand.toml")["colors"]["ink"]
+
+
+def test_the_logo_a_copied_brand_names_is_copied_with_it(profile, tmp_path):
+    """Otherwise the new profile names a file it does not have, and cannot load."""
+    written = write_profile(tmp_path / "new", brand_source=profile)
+    assert tmp_path / "new" / "mark.svg" in written
+    assert load_brand(tmp_path / "new").mark.startswith("data:image/svg+xml")
+
+
+def test_init_profile_falls_back_to_the_packaged_sample(tmp_path):
+    """An installed copy has no ./example; the package carries one (#10)."""
+    assert sample_profile(tmp_path) == PACKAGED_EXAMPLE
+
+
+def test_a_local_example_takes_precedence(profile, tmp_path):
+    local = tmp_path / "example"
+    local.mkdir()
+    (local / "brand.toml").write_text((profile / "brand.toml").read_text(encoding="utf-8"))
+    assert sample_profile(tmp_path) == local
 
 
 def test_a_fresh_scaffold_fails_doctor_with_the_missing_fields(tmp_path):

@@ -4,6 +4,7 @@
 </picture>
 
 [![CI](https://github.com/danielvogler/billwright/actions/workflows/ci.yml/badge.svg)](https://github.com/danielvogler/billwright/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/billwright?style=flat&color=0E0E10&label=pypi)](https://pypi.org/p/billwright)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0E0E10.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-0E0E10.svg)](https://www.python.org/downloads/)
 [![uv](https://img.shields.io/badge/deps-uv-0E0E10.svg)](https://docs.astral.sh/uv/)
@@ -254,6 +255,19 @@ sudo apt install libpango-1.0-0 libpangoft2-1.0-0 poppler-utils
 ```bash
 make setup        # uv sync
 ```
+
+Without a clone, it installs from [PyPI](https://pypi.org/p/billwright) — the
+same native libraries apply:
+
+```bash
+uvx billwright --help               # run it once, nothing installed for good
+uv tool install billwright           # or keep the `billwright` command around
+```
+
+An installed copy renders any profile you point it at with `--profile`, but it
+cannot create the first one yet: `init-profile` takes its starting `brand.toml`
+from the repository's `example/`, which the package does not include. Set up
+your profile from a clone, then use whichever you prefer.
 
 ## Try it immediately
 

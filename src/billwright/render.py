@@ -13,6 +13,7 @@ import os
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 
@@ -23,6 +24,9 @@ from .model import Bill, Brand, Company, Statement
 from .money import format_amount, format_chf, format_quantity
 from .paths import PACKAGE_ROOT
 from .qr import build_qr_svg
+
+if TYPE_CHECKING:
+    from weasyprint.document import Document
 
 TEMPLATES = PACKAGE_ROOT / "templates"
 STYLES = PACKAGE_ROOT / "styles"
@@ -137,15 +141,11 @@ def _stylesheet(brand: Brand, assets: Path, extra: str, profile: Path | None = N
 
 def _write_pdf(html_source: str, css_source: str, target: Path, when: date) -> int:
     """Render and return the page count. Pins the PDF clock for reproducibility."""
-    from weasyprint import CSS, HTML  # imported late: see native.ensure_native_libraries
-
     epoch = int(datetime(when.year, when.month, when.day, tzinfo=UTC).timestamp())
     previous = os.environ.get("SOURCE_DATE_EPOCH")
     os.environ["SOURCE_DATE_EPOCH"] = str(epoch)
     try:
-        document = HTML(string=html_source, base_url=str(PACKAGE_ROOT)).render(
-            stylesheets=[CSS(string=css_source)]
-        )
+        document = _document(html_source, css_source)
         target.parent.mkdir(parents=True, exist_ok=True)
         document.write_pdf(target)
         return len(document.pages)
@@ -157,12 +157,23 @@ def _write_pdf(html_source: str, css_source: str, target: Path, when: date) -> i
 
 
 def _page_count(html_source: str, css_source: str) -> int:
-    from weasyprint import CSS, HTML
+    return len(_document(html_source, css_source).pages)
 
-    return len(
-        HTML(string=html_source, base_url=str(PACKAGE_ROOT))
-        .render(stylesheets=[CSS(string=css_source)])
-        .pages
+
+def _document(html_source: str, css_source: str) -> Document:
+    """Lay the document out, with the stylesheet's @font-face rules in effect.
+
+    WeasyPrint ignores @font-face unless the stylesheet and the render share a
+    FontConfiguration. Without one the embedded faces were encoded and then
+    dropped, and the document was typeset in whatever the machine had
+    installed under the family name, or a fallback when it had nothing.
+    """
+    from weasyprint import CSS, HTML  # imported late: see native.ensure_native_libraries
+    from weasyprint.text.fonts import FontConfiguration
+
+    fonts = FontConfiguration()
+    return HTML(string=html_source, base_url=str(PACKAGE_ROOT)).render(
+        stylesheets=[CSS(string=css_source, font_config=fonts)], font_config=fonts
     )
 
 

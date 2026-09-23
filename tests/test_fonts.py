@@ -128,6 +128,18 @@ def test_a_malformed_face_list_refuses_to_load(custom, faces, complaint):
         load_brand(custom)
 
 
+@pytest.mark.parametrize("name", ["../outside.otf", "/tmp/outside.otf"])
+def test_a_face_outside_the_profile_refuses_to_load(custom, name):
+    """A brand.toml must not read files from elsewhere on the machine."""
+    declare(custom, [("fonts/A.otf", 400)])
+    brand = custom / "brand.toml"
+    brand.write_text(
+        brand.read_text(encoding="utf-8").replace("fonts/A.otf", name), encoding="utf-8"
+    )
+    with pytest.raises(ProfileError, match="inside the profile"):
+        load_brand(custom)
+
+
 def test_a_bill_renders_in_declared_faces(custom, tmp_path):
     declare(
         custom,

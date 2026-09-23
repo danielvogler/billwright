@@ -19,6 +19,7 @@ import tomllib
 from datetime import date
 from pathlib import Path
 
+from .load import profile_file
 from .model import Company
 
 COMPANY = """# Your company. Everything on the invoice above the line items comes from here.
@@ -146,6 +147,14 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
             "and could not render. Pass --from <profile> pointing at one that has it."
         )
 
+    # Every file the brand names is checked before anything is written, so a
+    # refused one leaves no half-made profile behind.
+    brand_text = ""
+    brand_files: list[str] = []
+    if brand_source is not None:
+        brand_text = (brand_source / "brand.toml").read_text(encoding="utf-8")
+        brand_files = _brand_files(brand_source, brand_text)
+
     (target / "clients").mkdir(parents=True, exist_ok=True)
 
     written = []
@@ -159,11 +168,14 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
         written.append(path)
 
     if brand_source is not None:
-        source_text = (brand_source / "brand.toml").read_text(encoding="utf-8")
         brand = target / "brand.toml"
-        brand.write_text(source_text, encoding="utf-8")
+        brand.write_text(brand_text, encoding="utf-8")
         written.append(brand)
-        written.extend(_copy_brand_files(brand_source, target, source_text))
+        for name in brand_files:
+            copy = target / name
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(brand_source / name, copy)
+            written.append(copy)
 
     # No bills/ or years/ directory, and no .gitkeep anywhere: git cannot track
     # an empty directory, and a committed-but-empty profile would be selected by
@@ -172,28 +184,23 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
     return written
 
 
-def _copy_brand_files(brand_source: Path, target: Path, brand_text: str) -> list[Path]:
-    """Copy the logo and faces a copied brand.toml names, so the new profile can load.
+def _brand_files(brand_source: Path, brand_text: str) -> list[str]:
+    """The logo and faces a brand.toml names, each checked to exist inside its profile.
 
-    Without them the new profile names files it does not have, and load_brand
-    refuses it — correctly, but only at the first render.
+    They are copied with it: without them the new profile names files it does
+    not have, and load_brand refuses it — correctly, but only at the first render.
     """
     data = tomllib.loads(brand_text)
     names = [data.get("wordmark", {}).get("mark", "")]
     names += [str(face.get("file", "")) for face in data.get("faces", []) if isinstance(face, dict)]
 
-    copies = []
     for name in filter(None, names):
-        source = brand_source / name
+        source = profile_file(brand_source, name, brand_source / "brand.toml", "brand.toml")
         if not source.is_file():
             raise FileNotFoundError(
                 f"{brand_source / 'brand.toml'} names {source}, which does not exist"
             )
-        copy = target / name
-        copy.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source, copy)
-        copies.append(copy)
-    return copies
+    return [name for name in names if name]
 
 
 def bill_template(number: str, client_key: str, company: Company, rates: dict) -> str:

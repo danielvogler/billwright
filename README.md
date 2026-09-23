@@ -337,11 +337,13 @@ Relative paths resolve against the working directory, never against the
 installed package — which is what lets the profile, and its archive, live in a
 repository that merely depends on billwright.
 
-Every archived bill says what produced it. Its PDF metadata holds a SHA-256 of
-each profile file the render read, and `<name>.provenance.json` beside it adds
-the PDF's own hash, the billwright version and the time it was rendered. That
-travels with the document to wherever the archive is stored, so the answer
-does not depend on a git history or a bucket's object versions.
+Every archived bill says what produced it. Its PDF metadata holds one digest
+over every file the render read, and `<name>.provenance.json` beside it lists
+each of those files with its SHA-256, plus the PDF's own hash, the billwright
+version and the time it was rendered. That travels with the document to
+wherever the archive is stored, so the answer does not depend on a git history
+or a bucket's object versions. The list stays in the archive rather than the
+PDF, which goes to the client.
 
 ```bash
 make verify                       # re-render the archive and compare bytes

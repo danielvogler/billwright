@@ -11,6 +11,7 @@ import json
 from pypdf import PdfReader
 
 from billwright import __version__
+from billwright.fonts import FACES
 from billwright.load import find_bill, load_brand, load_company
 from billwright.main import main as billwright_main
 from billwright.provenance import PDF_KEY, bill_stamp, read_record, record_path
@@ -23,9 +24,9 @@ def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def test_the_stamp_hashes_every_profile_file_the_render_reads(profile):
+def test_the_stamp_hashes_every_file_the_render_reads(profile, assets):
     bill = find_bill(profile, BILL)
-    stamp = bill_stamp(profile, bill, load_brand(profile), qr=True)
+    stamp = bill_stamp(profile, bill, load_brand(profile), assets, qr=True)
 
     assert set(stamp.inputs) == {
         "bills/2026/RE-26001.toml",
@@ -35,6 +36,7 @@ def test_the_stamp_hashes_every_profile_file_the_render_reads(profile):
         f"clients/{bill.client.key}.toml",
         "mark.svg",
         "styles/overrides.css",
+        *(f"assets:fonts/{name}" for name, _ in FACES),
     }
     assert stamp.inputs["company.toml"] == sha256(profile / "company.toml")
     assert stamp.language == bill.language
@@ -45,20 +47,41 @@ def test_the_pdf_carries_the_stamp_in_its_metadata(profile, assets, tmp_path):
     """Not on the visible page: it is provenance, of no use to the client."""
     bill = find_bill(profile, BILL)
     brand = load_brand(profile)
-    stamp = bill_stamp(profile, bill, brand, qr=True)
+    stamp = bill_stamp(profile, bill, brand, assets, qr=True)
     target = tmp_path / "stamped.pdf"
 
     render_bill(bill, load_company(profile), brand, assets, target, stamp=stamp)
 
     recorded = json.loads(PdfReader(str(target)).metadata[f"/{PDF_KEY}"])
-    assert recorded == json.loads(stamp.as_json())
+    assert recorded == {"inputs": stamp.digest, "language": "de", "qr": True}
+
+
+def test_the_pdf_names_no_input_file(profile, assets, tmp_path):
+    """The PDF goes to the client. A list of inputs would name the client's own
+    file and show, invoice by invoice, when the rates changed."""
+    bill = find_bill(profile, BILL)
+    brand = load_brand(profile)
+    target = tmp_path / "stamped.pdf"
+
+    render_bill(
+        bill,
+        load_company(profile),
+        brand,
+        assets,
+        target,
+        stamp=bill_stamp(profile, bill, brand, assets, qr=True),
+    )
+
+    metadata = str(PdfReader(str(target)).metadata)
+    assert bill.client.key not in metadata
+    assert "rates.toml" not in metadata
 
 
 def test_a_stamped_render_is_still_byte_identical(profile, assets, tmp_path):
     """The stamp holds hashes, never a clock, so a re-render reproduces it."""
     bill = find_bill(profile, BILL)
     brand, company = load_brand(profile), load_company(profile)
-    stamp = bill_stamp(profile, bill, brand, qr=True)
+    stamp = bill_stamp(profile, bill, brand, assets, qr=True)
     first, second = tmp_path / "a.pdf", tmp_path / "b.pdf"
 
     render_bill(bill, company, brand, assets, first, stamp=stamp)
@@ -87,6 +110,7 @@ def test_archiving_writes_a_record_beside_the_pdf(profile, tmp_path):
     assert record["billwright"] == __version__
     assert record["rendered_at"].endswith("Z")
     assert record["inputs"]["company.toml"] == sha256(profile / "company.toml")
+    assert len(record["inputs_sha256"]) == 64
     assert record["options"] == {"language": "de", "qr": True}
 
 

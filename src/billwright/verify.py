@@ -101,7 +101,7 @@ def _verify(pdf: Path, profile: Path, company: Company, brand: Brand, assets: Pa
     options = record.get("options", {})
     bill = bill.model_copy(update={"language": options.get("language", bill.language)})
     qr = bool(options.get("qr", True))
-    if changed := _changed_inputs(record, bill_stamp(profile, bill, brand, qr=qr).inputs):
+    if changed := _changed_inputs(record, bill_stamp(profile, bill, brand, assets, qr=qr).inputs):
         return Finding(pdf, Outcome.INPUTS_CHANGED, f"edited since archiving: {', '.join(changed)}")
 
     version = record.get("billwright")
@@ -134,7 +134,7 @@ def _compare(
     recorded: bool,
 ) -> Finding:
     """Re-render ``bill`` into a scratch directory and compare bytes with ``pdf``."""
-    stamp = bill_stamp(profile, bill, brand, qr=qr) if recorded else None
+    stamp = bill_stamp(profile, bill, brand, assets, qr=qr) if recorded else None
     with tempfile.TemporaryDirectory() as scratch:
         fresh = Path(scratch) / pdf.name
         render_bill(bill, company, brand, assets, fresh, qr, profile, stamp)

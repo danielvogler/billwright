@@ -63,6 +63,22 @@ def test_an_input_edited_after_archiving_is_named(copied, tmp_path):
     assert "rates.toml" in finding.detail
 
 
+def test_a_swapped_font_face_is_named(copied, tmp_path):
+    """The faces are embedded, so they shape every byte of the document."""
+    assets = tmp_path / "assets"
+    shutil.copytree(DEFAULT_ASSETS, assets)
+    archive_dir = tmp_path / "archive"
+    argv = ["--profile", str(copied), "--archive-dir", str(archive_dir), "--assets", str(assets)]
+    assert billwright_main([*argv, "--out", str(tmp_path), "bill", BILL, "--archive"]) == 0
+    face = assets / "fonts" / "Inter-Medium.otf"
+    face.write_bytes(face.read_bytes() + b"\0")
+
+    finding = only(verify_archive(copied, archive_dir, assets))
+
+    assert finding.outcome is Outcome.INPUTS_CHANGED
+    assert "assets:fonts/Inter-Medium.otf" in finding.detail
+
+
 def test_an_altered_pdf_is_caught(copied, tmp_path):
     archive_dir, pdf = archive(copied, tmp_path)
     pdf.write_bytes(pdf.read_bytes() + b"\n")

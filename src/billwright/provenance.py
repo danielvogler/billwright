@@ -7,13 +7,16 @@ document and beside it, and the storage choice stops being load-bearing.
 
 Two places, holding different things:
 
-- **The PDF metadata** carries the stamp: a SHA-256 of every profile file the
-  render read, and the options it was rendered with. Hashes, never a clock, so
-  a re-render reproduces the same bytes (``tests/test_reproducible.py``), which
-  is what lets ``verify`` compare an archive against a fresh render at all.
-- **A record beside the PDF** repeats the stamp and adds what the document
-  cannot hold about itself: its own hash and when it was rendered. It is JSON,
-  so it can be read without parsing a PDF.
+- **The PDF metadata** carries one digest over every input the render read,
+  and the options it was rendered with. Hashes, never a clock, so a re-render
+  reproduces the same bytes (``tests/test_reproducible.py``), which is what
+  lets ``verify`` compare an archive against a fresh render at all. One digest
+  rather than a list, because the PDF goes to the client: a list would name
+  the client's own file and show, invoice by invoice, when the rates changed.
+- **A record beside the PDF** stays in the archive. It lists every input and
+  its hash, so a mismatch names the file, and adds what the document cannot
+  hold about itself: its own hash and when it was rendered. It is JSON, so it
+  can be read without parsing a PDF.
 
 Not on the visible page: it is provenance, of no use to the client.
 """
@@ -29,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
+from .fonts import FACES, fonts_dir
 from .load import bill_file
 from .model import Bill, Brand
 
@@ -44,19 +48,28 @@ RECORD_SUFFIX = ".provenance.json"
 #: Profile files a bill may be shaped by beyond its own data, when present.
 PROFILE_STYLES = ("styles/overrides.css", "styles/bill.css")
 
+#: Prefix for inputs from outside the profile: the embedded font faces.
+ASSETS_PREFIX = "assets:"
+
 
 @dataclass(frozen=True)
 class Stamp:
-    """The inputs of one render: profile-relative path to SHA-256, and options."""
+    """The inputs of one render: input name to SHA-256, and options."""
 
     inputs: Mapping[str, str]
     language: str
     qr: bool
 
+    @property
+    def digest(self) -> str:
+        """One SHA-256 over every input name and hash, in name order."""
+        canonical = json.dumps(dict(sorted(self.inputs.items())), separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
     def as_json(self) -> str:
-        """Canonical JSON, so the same stamp is the same bytes in every PDF."""
+        """What the PDF carries, as canonical JSON: the same stamp, the same bytes."""
         return json.dumps(
-            {"inputs": dict(self.inputs), "language": self.language, "qr": self.qr},
+            {"inputs": self.digest, "language": self.language, "qr": self.qr},
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -92,10 +105,20 @@ def fingerprint(profile: Path, paths: list[Path]) -> dict[str, str]:
     return {path.relative_to(profile).as_posix(): sha256(path) for path in sorted(paths)}
 
 
-def bill_stamp(profile: Path, bill: Bill, brand: Brand, *, qr: bool) -> Stamp:
-    """The stamp for rendering ``bill`` as it now stands in ``profile``."""
-    inputs = fingerprint(profile, bill_inputs(profile, bill, brand))
-    return Stamp(inputs=inputs, language=bill.language, qr=qr)
+def face_inputs(assets: Path) -> dict[str, str]:
+    """The embedded faces, keyed apart from profile files: they shape every byte."""
+    directory = fonts_dir(assets)
+    return {
+        f"{ASSETS_PREFIX}fonts/{filename}": sha256(directory / filename)
+        for filename, _ in FACES
+        if (directory / filename).is_file()
+    }
+
+
+def bill_stamp(profile: Path, bill: Bill, brand: Brand, assets: Path, *, qr: bool) -> Stamp:
+    """The stamp for rendering ``bill`` as it now stands in ``profile`` and ``assets``."""
+    inputs = {**fingerprint(profile, bill_inputs(profile, bill, brand)), **face_inputs(assets)}
+    return Stamp(inputs=dict(sorted(inputs.items())), language=bill.language, qr=qr)
 
 
 def record_path(pdf: Path) -> Path:
@@ -111,6 +134,7 @@ def write_record(pdf: Path, stamp: Stamp, *, rendered_at: datetime | None = None
         "billwright": __version__,
         "rendered_at": when.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "options": {"language": stamp.language, "qr": stamp.qr},
+        "inputs_sha256": stamp.digest,
         "inputs": dict(stamp.inputs),
     }
     path = record_path(pdf)

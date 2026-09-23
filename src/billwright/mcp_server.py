@@ -205,7 +205,7 @@ def render_bill(
         out=out if out is not None else default_out(),
         archive_dir=_archive_dir(profile, archive_dir),
     )
-    stamp = bill_stamp(profile, bill, brand, qr=True)
+    stamp = bill_stamp(profile, bill, brand, assets, qr=True)
     result = render(bill, company, brand, assets, target, True, profile, stamp)
     if archive:
         write_record(result.path, stamp)

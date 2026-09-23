@@ -69,7 +69,7 @@ def cmd_bill(args: argparse.Namespace) -> int:
         company, bill, archive=args.archive, out=Path(args.out), archive_dir=archive_dir
     )
 
-    stamp = bill_stamp(profile, bill, brand, qr=not args.no_qr)
+    stamp = bill_stamp(profile, bill, brand, Path(args.assets), qr=not args.no_qr)
     result = render_bill(
         bill, company, brand, Path(args.assets), target, not args.no_qr, profile, stamp
     )

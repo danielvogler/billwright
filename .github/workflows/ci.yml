@@ -22,6 +22,9 @@ concurrency:
 env:
   FORCE_COLOR: "1"
 
+# Every action is pinned to a commit, not a tag: a tag can be moved onto other
+# code, and an action runs with this workflow's token. The comment after each
+# says which release the commit is; Dependabot moves both together.
 jobs:
   linux:
     name: ubuntu / python ${{ matrix.python-version }}
@@ -34,7 +37,7 @@ jobs:
         python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # WeasyPrint binds Pango and Cairo through cffi. Without these every
       # rendering test fails on `cannot load library 'libgobject-2.0-0'`.
@@ -44,7 +47,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2 poppler-utils
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
@@ -83,7 +86,7 @@ jobs:
       # structural checks pass happily while the layout is broken.
       - name: Upload rendered PDFs
         if: matrix.python-version == '3.13'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: example-documents
           path: out/*.pdf
@@ -93,14 +96,14 @@ jobs:
     name: macos / python 3.13
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Worth a separate job: macOS is the platform this is developed on, and
       # the only one that exercises native.py's dyld repair.
       - name: Install native libraries
         run: brew install pango
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           enable-cache: true
           python-version: "3.13"
@@ -118,7 +121,7 @@ jobs:
     name: pre-commit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install native libraries
         run: |
@@ -126,7 +129,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           enable-cache: true
           python-version: "3.13"
@@ -136,3 +139,18 @@ jobs:
 
       - name: Run every hook over every file
         run: uv run pre-commit run --all-files --show-diff-on-failure
+
+  # `billwright scan` checks the tree as it is now. This checks every commit
+  # ever pushed: a credential committed once and reverted is still leaked.
+  secrets:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Scan the full history for secrets
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

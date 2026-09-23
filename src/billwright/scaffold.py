@@ -163,7 +163,7 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
         brand = target / "brand.toml"
         brand.write_text(source_text, encoding="utf-8")
         written.append(brand)
-        written.extend(_copy_mark(brand_source, target, source_text))
+        written.extend(_copy_brand_files(brand_source, target, source_text))
 
     # No bills/ or years/ directory, and no .gitkeep anywhere: git cannot track
     # an empty directory, and a committed-but-empty profile would be selected by
@@ -172,24 +172,28 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
     return written
 
 
-def _copy_mark(brand_source: Path, target: Path, brand_text: str) -> list[Path]:
-    """Copy the logo a copied brand.toml names, so the new profile can load.
+def _copy_brand_files(brand_source: Path, target: Path, brand_text: str) -> list[Path]:
+    """Copy the logo and faces a copied brand.toml names, so the new profile can load.
 
-    Without it the new profile names a file it does not have, and load_brand
+    Without them the new profile names files it does not have, and load_brand
     refuses it — correctly, but only at the first render.
     """
-    name = tomllib.loads(brand_text).get("wordmark", {}).get("mark", "")
-    if not name:
-        return []
-    source = brand_source / name
-    if not source.is_file():
-        raise FileNotFoundError(
-            f"{brand_source / 'brand.toml'} names {source}, which does not exist"
-        )
-    copy = target / name
-    copy.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, copy)
-    return [copy]
+    data = tomllib.loads(brand_text)
+    names = [data.get("wordmark", {}).get("mark", "")]
+    names += [str(face.get("file", "")) for face in data.get("faces", []) if isinstance(face, dict)]
+
+    copies = []
+    for name in filter(None, names):
+        source = brand_source / name
+        if not source.is_file():
+            raise FileNotFoundError(
+                f"{brand_source / 'brand.toml'} names {source}, which does not exist"
+            )
+        copy = target / name
+        copy.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, copy)
+        copies.append(copy)
+    return copies
 
 
 def bill_template(number: str, client_key: str, company: Company, rates: dict) -> str:

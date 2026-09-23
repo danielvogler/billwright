@@ -25,6 +25,7 @@ from __future__ import annotations
 # named `date`, which shadows the type for every annotation after it.
 import datetime
 from decimal import Decimal
+from pathlib import Path
 from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
@@ -244,6 +245,14 @@ class Statement(Frozen):
         return self.revenue == 0 and self.expenses == 0
 
 
+class Face(Frozen):
+    """One font file and the CSS weight it stands for. Upright only."""
+
+    #: Resolved against the profile at load time, like every file it names.
+    file: Path
+    weight: int = Field(ge=100, le=900, multiple_of=100)
+
+
 class Brand(Frozen):
     """Visual tokens. Loaded from ``<profile>/brand.toml``.
 
@@ -255,7 +264,9 @@ class Brand(Frozen):
 
     colors: dict[str, str] = Field(default_factory=dict)
     font_family: str = "Inter"
-    font_file: str = "fonts/InterVariable.ttf"
+    #: The faces ``brand.toml`` declares. Empty: the Inter faces shipped with
+    #: the package, from ``--assets``.
+    faces: tuple[Face, ...] = ()
     wordmark: dict[str, str] = Field(default_factory=dict)
     #: The logo named by ``wordmark.mark``, read once at load time and carried
     #: as a data URI, so the rendered PDF is self-contained. Empty: no logo.

@@ -18,7 +18,8 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
-from .model import Address, Bill, Brand, Client, Company, ExpenseItem, LineItem
+from .fonts import FACE_FORMATS
+from .model import Address, Bill, Brand, Client, Company, ExpenseItem, Face, LineItem
 from .money import money
 from .paths import checked_archive_dir, default_archive
 
@@ -250,13 +251,41 @@ def load_brand(profile: Path) -> Brand:
         path,
         colors=dict(data.get("colors", {})),
         font_family=data.get("font_family", "Inter"),
-        font_file=data.get("font_file", "fonts/InterVariable.ttf"),
+        faces=_faces(profile, data.get("faces", []), path),
         wordmark=wordmark,
         mark=_mark_data_uri(profile, wordmark.get("mark", ""), path),
     )
 
 
 MARK_TYPES = {".svg": "image/svg+xml", ".png": "image/png"}
+
+
+def _faces(profile: Path, declared: object, source: Path) -> tuple[Face, ...]:
+    """The faces ``brand.toml`` declares, resolved against the profile.
+
+    Checked here rather than at render time, for the same reason as the logo:
+    a face that is absent, in a format the stylesheet cannot name, or declared
+    twice for one weight renders a client document in something other than
+    what the profile asked for, and exits 0.
+    """
+    if not isinstance(declared, list):
+        raise ProfileError(f"{source}: faces must be a list of {{ file, weight }} tables")
+
+    faces = []
+    for entry in declared:
+        if not isinstance(entry, dict) or "file" not in entry or "weight" not in entry:
+            raise ProfileError(f"{source}: every entry in faces needs a file and a weight")
+        path = profile / str(entry["file"])
+        if path.suffix.lower() not in FACE_FORMATS:
+            raise ProfileError(f"{source}: faces must be .otf or .ttf files, got {path.name!r}")
+        if not path.is_file():
+            raise ProfileError(f"{source}: faces names {path}, which does not exist")
+        faces.append(_build(Face, source, file=path, weight=entry["weight"]))
+
+    weights = [face.weight for face in faces]
+    if twice := sorted({weight for weight in weights if weights.count(weight) > 1}):
+        raise ProfileError(f"{source}: faces declares weight {twice[0]} twice")
+    return tuple(faces)
 
 
 def _mark_data_uri(profile: Path, name: str, source: Path) -> str:

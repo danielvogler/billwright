@@ -42,10 +42,10 @@ this particular company — or copy its shape to write one for another.
    └── years/<year>.toml  expenses, balance figures, notes
    ```
 
-4. To use a different typeface, put it in a directory of your own as
-   `fonts/<name>.otf` and pass `--assets` at that directory. Note that the
-   face *filenames* are still the three the renderer declares — see
-   `src/billwright/fonts.py`; `brand.toml`'s `font_file` is not yet read.
+4. To use a different typeface, put its static faces in the profile and
+   declare them in `brand.toml` as `faces = [{ file, weight }, …]`, one per
+   weight the stylesheets use (400, 500, 600). Without `faces`, the Inter
+   faces shipped with the package are embedded.
 5. `billwright --profile <dir> bill <number>`.
 
 Nothing in `src/` should need to change. If it does, that is a bug in the split:

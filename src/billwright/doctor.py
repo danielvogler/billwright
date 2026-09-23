@@ -26,7 +26,8 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-from .fonts import describe_missing, missing_faces
+from .fonts import USED_WEIGHTS, describe_missing, missing_faces
+from .load import ProfileError, load_brand
 from .native import missing_native_library_hint
 
 # Swiss QR bill field limits, from the Implementation Guidelines. Exceeding one
@@ -216,6 +217,46 @@ def check_rates(profile: Path) -> list[Problem]:
     return []
 
 
+def check_brand(profile: Path) -> list[Problem]:
+    """Whether ``brand.toml`` loads, and whether its faces cover the stylesheets.
+
+    Loading is the check: a missing logo or face refuses to load, and used to be
+    found only by the first render, from a different command.
+    """
+    path = profile / "brand.toml"
+    if not path.is_file():
+        return [Problem(Level.ERROR, "brand.toml", f"missing: {path}")]
+
+    try:
+        brand = load_brand(profile)
+    except ProfileError as exc:
+        return [Problem(Level.ERROR, "brand.toml", str(exc))]
+
+    problems: list[Problem] = []
+    if "font_file" in _read(path):
+        problems.append(
+            Problem(
+                Level.WARNING,
+                "brand.toml",
+                "font_file is not read by anything; declare the typeface's files "
+                "in faces = [{ file, weight }, …], or remove it",
+            )
+        )
+
+    declared = {face.weight for face in brand.faces}
+    if brand.faces and (absent := [w for w in USED_WEIGHTS if w not in declared]):
+        problems.append(
+            Problem(
+                Level.WARNING,
+                "brand.toml",
+                f"faces declares no weight {', '.join(map(str, absent))}, which the "
+                "stylesheets use; those are drawn from the nearest face or a "
+                "synthesized bold",
+            )
+        )
+    return problems
+
+
 def check_environment(assets: Path | None = None) -> list[Problem]:
     problems: list[Problem] = []
 
@@ -243,6 +284,7 @@ def diagnose(profile: Path, assets: Path | None = None) -> list[Problem]:
     return [
         *check_environment(assets),
         *check_company(profile),
+        *check_brand(profile),
         *check_clients(profile),
         *check_rates(profile),
     ]

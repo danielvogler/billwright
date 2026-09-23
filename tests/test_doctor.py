@@ -11,6 +11,7 @@ import pytest
 
 from billwright.doctor import (
     Level,
+    check_brand,
     check_company,
     check_environment,
     check_rates,
@@ -133,3 +134,35 @@ def test_a_fonts_directory_missing_a_declared_face_is_an_error(tmp_path):
 
 def test_the_packaged_assets_satisfy_doctor():
     assert not [p for p in check_environment(DEFAULT_ASSETS) if "font" in p.message.lower()]
+
+
+def edit_brand(root, old, new):
+    path = root / "brand.toml"
+    text = path.read_text(encoding="utf-8")
+    assert old in text, old
+    path.write_text(text.replace(old, new), encoding="utf-8")
+
+
+def test_the_example_brand_has_no_problems(profile):
+    assert check_brand(profile) == []
+
+
+def test_a_brand_that_cannot_load_is_an_error(broken):
+    """A missing face or logo used to surface only at the first render."""
+    edit_brand(broken, 'font_family = "Inter"\n', 'faces = [{ file = "gone.otf", weight = 400 }]\n')
+    assert "gone.otf" in messages(check_brand(broken))
+
+
+def test_font_file_is_reported_as_ignored(broken):
+    """It read like configuration and was read by nothing."""
+    edit_brand(broken, 'font_family = "Inter"\n', 'font_family = "Inter"\nfont_file = "x.otf"\n')
+    assert "font_file" in messages(check_brand(broken), Level.WARNING)
+
+
+def test_declared_faces_missing_a_weight_the_stylesheets_use_are_a_warning(broken):
+    """500 and 600 would be drawn from the nearest face, or a synthesized bold."""
+    shutil.copyfile(DEFAULT_ASSETS / "fonts" / "Inter-Regular.otf", broken / "Only.otf")
+    edit_brand(broken, 'font_family = "Inter"\n', 'faces = [{ file = "Only.otf", weight = 400 }]\n')
+    warnings = messages(check_brand(broken), Level.WARNING)
+    assert "500" in warnings
+    assert "600" in warnings

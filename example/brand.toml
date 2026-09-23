@@ -8,8 +8,17 @@
 # loader passes the whole [colors] table through, so a new one needs no Python
 # change — but do not remove these.
 
+# The typeface. Without `faces`, the Inter faces shipped with billwright are
+# embedded. To use another, put its files in this directory and declare one
+# static face per weight; the stylesheets use 400, 500 and 600. .otf or .ttf.
+#
+#   font_family = "Archivo"
+#   faces = [
+#     { file = "fonts/Archivo-Regular.otf",  weight = 400 },
+#     { file = "fonts/Archivo-Medium.otf",   weight = 500 },
+#     { file = "fonts/Archivo-SemiBold.otf", weight = 600 },
+#   ]
 font_family = "Inter"
-font_file = "fonts/Inter-Regular.otf"
 
 [colors]
 ink = "#14171A"

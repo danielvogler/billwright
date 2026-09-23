@@ -36,7 +36,11 @@ lines = []                 # optional extra lines above the street
 
 ```toml
 font_family = "…"
-font_file = "fonts/….otf"
+faces = [                  # optional; without it, the packaged Inter faces
+  { file = "fonts/…-Regular.otf",  weight = 400 },
+  { file = "fonts/…-Medium.otf",   weight = 500 },
+  { file = "fonts/…-SemiBold.otf", weight = 600 },
+]
 
 [colors]                   # become CSS custom properties verbatim
 ink = "#…"  muted = "#…"  rule = "#…"

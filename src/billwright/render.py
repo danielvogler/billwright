@@ -22,6 +22,7 @@ from .i18n import MONTHS, country_name, strings, unit_name
 from .model import Bill, Brand, Company, Statement
 from .money import format_amount, format_chf, format_quantity
 from .paths import PACKAGE_ROOT
+from .provenance import META_NAME, Stamp
 from .qr import build_qr_svg
 
 TEMPLATES = PACKAGE_ROOT / "templates"
@@ -66,6 +67,10 @@ def _environment(profile: Path | None = None) -> Environment:
     # another repository that may have moved on. Metadata only: it is provenance,
     # not something the client has any use for.
     env.globals["billwright_version"] = __version__
+    # Which inputs produced it, for the same reason; see provenance.py. Empty
+    # unless the caller stamped the render.
+    env.globals["provenance_key"] = META_NAME
+    env.globals["provenance"] = ""
     return env
 
 
@@ -147,7 +152,9 @@ def _write_pdf(html_source: str, css_source: str, target: Path, when: date) -> i
             stylesheets=[CSS(string=css_source)]
         )
         target.parent.mkdir(parents=True, exist_ok=True)
-        document.write_pdf(target)
+        # custom_metadata writes <meta> names beyond the standard ones, which is
+        # where the provenance stamp travels.
+        document.write_pdf(target, custom_metadata=True)
         return len(document.pages)
     finally:
         if previous is None:
@@ -174,8 +181,9 @@ def render_bill(
     target: Path,
     with_qr: bool = True,
     profile: Path | None = None,
+    stamp: Stamp | None = None,
 ) -> RenderResult:
-    """Render one bill to PDF.
+    """Render one bill to PDF, with ``stamp`` in its metadata if given.
 
     The Swiss QR payment part belongs at the foot of the last page. That is easy
     when the bill is one page, which these always are in practice. If the content
@@ -203,6 +211,7 @@ def render_bill(
         "salutation": bill.client.salutation(bill.language) or text["fallback_salutation"],
         "qr_svg": None,
         "payment_layout": "none",
+        "provenance": stamp.as_json() if stamp else "",
     }
 
     if not with_qr:

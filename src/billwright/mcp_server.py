@@ -189,6 +189,7 @@ def render_bill(
     is a separate decision from rendering — exactly as `make bill` and
     `make archive` are two commands and not one.
     """
+    from .provenance import bill_stamp, write_record
     from .render import render_bill as render
 
     company = load_company(profile)
@@ -204,7 +205,10 @@ def render_bill(
         out=out if out is not None else default_out(),
         archive_dir=_archive_dir(profile, archive_dir),
     )
-    result = render(bill, company, brand, assets, target, True, profile)
+    stamp = bill_stamp(profile, bill, brand, qr=True)
+    result = render(bill, company, brand, assets, target, True, profile, stamp)
+    if archive:
+        write_record(result.path, stamp)
     return {
         "profile": str(profile),
         "company": company.name,

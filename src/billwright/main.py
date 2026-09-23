@@ -52,6 +52,7 @@ def _load_context(profile: Path) -> tuple[Company, Brand]:
 
 def cmd_bill(args: argparse.Namespace) -> int:
     from .load import find_bill
+    from .provenance import bill_stamp, write_record
     from .render import render_bill
 
     profile = _profile(args)
@@ -68,8 +69,13 @@ def cmd_bill(args: argparse.Namespace) -> int:
         company, bill, archive=args.archive, out=Path(args.out), archive_dir=archive_dir
     )
 
-    result = render_bill(bill, company, brand, Path(args.assets), target, not args.no_qr, profile)
+    stamp = bill_stamp(profile, bill, brand, qr=not args.no_qr)
+    result = render_bill(
+        bill, company, brand, Path(args.assets), target, not args.no_qr, profile, stamp
+    )
     print(f"{result.path}  ({result.pages} page(s), payment part: {result.payment_layout})")
+    if args.archive:
+        print(f"{write_record(result.path, stamp)}  (provenance record)")
     if result.pages > 1:
         print(
             "  note: the invoice body runs past one page, so the payment part "

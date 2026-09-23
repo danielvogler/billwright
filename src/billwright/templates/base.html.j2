@@ -10,6 +10,9 @@
     <title>{% block title %}{% endblock %}</title>
     <meta name="author" content="{{ company.name }}" />
     <meta name="generator" content="billwright {{ billwright_version }}" />
+    {% if provenance %}
+    <meta name="{{ provenance_key }}" content="{{ provenance }}" />
+    {% endif %}
   </head>
   <body>
     {% block body %}{% endblock %}

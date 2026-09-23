@@ -49,6 +49,7 @@ class Outcome(Enum):
     DIFFERS = "differs"
     UNRECORDED = "unrecorded"
     NO_BILL = "no bill"
+    UNRENDERABLE = "cannot re-render"
 
 
 #: Outcomes that are not a failure of the archive.
@@ -78,7 +79,21 @@ def archived_bills(archive_dir: Path) -> list[Path]:
 def verify_archive(profile: Path, archive_dir: Path, assets: Path) -> list[Finding]:
     """One finding per archived bill, in filename order."""
     company, brand = load_company(profile), load_brand(profile)
-    return [_verify(pdf, profile, company, brand, assets) for pdf in archived_bills(archive_dir)]
+    return [
+        _verify_one(pdf, profile, company, brand, assets) for pdf in archived_bills(archive_dir)
+    ]
+
+
+def _verify_one(pdf: Path, profile: Path, company: Company, brand: Brand, assets: Path) -> Finding:
+    """One bill's finding. A bill that cannot be re-rendered is a finding too.
+
+    Anything else would end the run on the first such bill and report nothing
+    about the rest, which is the opposite of what an audit of an archive is for.
+    """
+    try:
+        return _verify(pdf, profile, company, brand, assets)
+    except Exception as exc:  # reported as a failing finding, never swallowed
+        return Finding(pdf, Outcome.UNRENDERABLE, f"{type(exc).__name__}: {exc}")
 
 
 def _verify(pdf: Path, profile: Path, company: Company, brand: Brand, assets: Path) -> Finding:

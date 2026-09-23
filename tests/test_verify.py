@@ -79,6 +79,19 @@ def test_a_swapped_font_face_is_named(copied, tmp_path):
     assert "assets:fonts/Inter-Medium.otf" in finding.detail
 
 
+def test_a_bill_that_cannot_be_re_rendered_does_not_end_the_run(copied, tmp_path):
+    """One broken bill must not hide what the rest of the archive says."""
+    archive_dir, pdf = archive(copied, tmp_path)
+    record_path(pdf).unlink()  # no record, so verify goes straight to the re-render
+    empty_assets = tmp_path / "no-assets"  # every face missing: the render raises
+
+    finding = only(verify_archive(copied, archive_dir, empty_assets))
+
+    assert finding.outcome is Outcome.UNRENDERABLE
+    assert finding.failed
+    assert "FontError" in finding.detail
+
+
 def test_an_altered_pdf_is_caught(copied, tmp_path):
     archive_dir, pdf = archive(copied, tmp_path)
     pdf.write_bytes(pdf.read_bytes() + b"\n")

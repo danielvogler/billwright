@@ -39,3 +39,9 @@ house_number = "1"
 postal_code = "8001"
 city = "Zürich"
 country = "CH"
+
+# The account holder, as the bank has it. A sole proprietorship's account is
+# often in the owner's own name rather than the trading name; a GmbH's is in the
+# entity's, which is address.name, and then this can be left out.
+[qr]
+creditor_name = "Dr. Alex Muster"

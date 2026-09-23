@@ -73,8 +73,11 @@ Details in [`references/swiss-rules.md`](references/swiss-rules.md).
 - **The QR payment part is 210 × 105 mm**, flush to the bottom edge of the sheet
   it sits on. It is fixed geometry that a bank's scanner reads — content must
   never encroach on it.
-- **The creditor on the QR bill is the account holder**, not the trading name.
-  Banks match the holder; a mismatch bounces the payment.
+- **The creditor on the QR bill is the account holder**, whatever the letter
+  says. Banks match the holder; a mismatch bounces the payment. For a GmbH or
+  an AG that is the entity, not the person who signs; for a sole
+  proprietorship it is often the owner's own name. Take it from the bank, not
+  from the letterhead.
 - **Retention is ten years** (`OR Art. 958f`). Commit the rendered PDFs.
 - **Below CHF 500'000 turnover**, a sole proprietorship owes only a
   *Milchbüechlirechnung* under `OR Art. 957 II` — receipts, payments, asset

@@ -127,6 +127,48 @@ def _check_address(where: str, address: dict, problems: list[Problem]) -> None:
         )
 
 
+def _check_creditor(data: dict, problems: list[Problem]) -> None:
+    """The QR creditor must be the account holder, and only the user knows who that is.
+
+    It is ``address.name`` unless ``[qr] creditor_name`` says otherwise. When
+    the signer differs from the address name, either can be the holder: the
+    entity for a GmbH, often the person for a sole proprietorship. The creditor
+    was once taken from ``person``, so a profile written then may be relying on
+    it. Unanswered, like ``vat_registered``, is asked about rather than guessed.
+    """
+    qr = data.get("qr", {})
+    if not isinstance(qr, dict):
+        problems.append(
+            Problem(Level.ERROR, "company.toml", 'qr must be a table: [qr] creditor_name = "…"')
+        )
+        return
+    creditor = str(qr.get("creditor_name", "")).strip()
+    limit = QR_LIMITS["name"]
+    if len(creditor) > limit:
+        problems.append(
+            Problem(
+                Level.ERROR,
+                "company.toml",
+                f"qr.creditor_name is {len(creditor)} characters; the Swiss QR bill "
+                f"allows {limit}, and a longer one is rejected by the bank",
+            )
+        )
+
+    person = str(data.get("person", "")).strip()
+    holder = str(data.get("address", {}).get("name", "")).strip()
+    if person and holder and person != holder and not creditor.strip():
+        problems.append(
+            Problem(
+                Level.WARNING,
+                "company.toml",
+                f"the QR payment part names {holder!r} (address.name) as the account "
+                f"holder, not the signer {person!r}. Set [qr] creditor_name to the "
+                "name your bank holds the account under — either one — to confirm it; "
+                "a mismatch bounces the payment.",
+            )
+        )
+
+
 def check_company(profile: Path) -> list[Problem]:
     problems: list[Problem] = []
     path = profile / "company.toml"
@@ -141,6 +183,7 @@ def check_company(profile: Path) -> list[Problem]:
 
     _check_iban(str(data.get("iban", "")), problems)
     _check_address("company.toml", data.get("address", {}), problems)
+    _check_creditor(data, problems)
 
     country = str(data.get("address", {}).get("country", "CH"))
     if country != "CH":

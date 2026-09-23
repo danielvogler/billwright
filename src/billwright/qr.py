@@ -37,12 +37,14 @@ def _party(address: Address, name_override: str | None = None) -> dict[str, str]
 def build_qr_svg(bill: Bill, company: Company, language: str = "de") -> str:
     """Render the payment part for ``bill`` and return the SVG source.
 
-    The creditor is the person who holds the IBAN, not the trading name: banks
-    match the account holder, and a mismatch gets the payment bounced.
+    The creditor is whoever holds the IBAN: banks match the account holder, and
+    a mismatch gets the payment bounced. That is ``address.name`` unless
+    ``[qr] creditor_name`` says otherwise — never ``person``, who only signs,
+    and who for a GmbH is a different legal party from the one invoicing.
     """
     qr = QRBill(
         account=company.iban_compact,
-        creditor=_party(company.address, name_override=company.person or company.address.name),
+        creditor=_party(company.address, name_override=company.creditor_name),
         debtor=_party(bill.client.address),
         amount=str(money(bill.total(company.effective_vat_rate))),
         currency="CHF",

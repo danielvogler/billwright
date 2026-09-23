@@ -14,7 +14,7 @@ profile and leave the mechanism behind.
 
 ```toml
 name = "…"                 # trading name
-person = "…"               # signatory; also the QR-bill creditor
+person = "…"               # signatory only; never the QR-bill creditor
 email = "…"  website = "…"  phone = "…"
 bank = "…"  iban = "…"  bic = "…"
 uid = ""                   # CHE-…; omitted from documents when empty
@@ -28,6 +28,9 @@ default_language = "de"
 name = "…"  street = "…"  house_number = "…"
 postal_code = "…"  city = "…"  country = "CH"
 lines = []                 # optional extra lines above the street
+
+[qr]
+creditor_name = "…"        # account holder, if not address.name
 ```
 
 `street` and `house_number` are split because the QR bill needs them separately.

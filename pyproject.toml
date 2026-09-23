@@ -7,10 +7,26 @@ requires-python = ">=3.11"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Daniel Vogler" }]
+keywords = [
+    "invoice",
+    "invoicing",
+    "qr-bill",
+    "swiss-qr-bill",
+    "accounting",
+    "annual-accounts",
+    "pdf",
+    "weasyprint",
+    "toml",
+    "mcp",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Financial and Insurance Industry",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Office/Business :: Financial :: Accounting",
     "Topic :: Text Processing :: Markup :: HTML",
 ]
@@ -20,6 +36,12 @@ dependencies = [
     "qrbill>=1.2",
     "weasyprint>=66",
 ]
+
+[project.urls]
+Homepage = "https://github.com/danielvogler/billwright"
+Source = "https://github.com/danielvogler/billwright"
+Issues = "https://github.com/danielvogler/billwright/issues"
+Changelog = "https://github.com/danielvogler/billwright/blob/main/CHANGELOG.md"
 
 [project.scripts]
 billwright = "billwright.main:main"

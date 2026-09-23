@@ -21,7 +21,7 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup bill statement new list check-bills preview archive \
+.PHONY: help setup bill statement new list check-bills preview archive verify \
         test lint fmt scan types hooks doctor check clean \
         clean-dist build dist-check release-check
 
@@ -69,6 +69,9 @@ archive:  ## Write a reviewed bill into archive/:  make archive BILL=RE-26001
 
 archive-statement:  ## Write the yearly accounts into archive/:  make archive-statement YEAR=2026
 	uv run billwright statement $(YEAR) --archive
+
+verify:  ## Re-render every archived bill and compare it with the stored PDF
+	uv run billwright verify
 
 # ---- checks ----
 

@@ -309,6 +309,21 @@ def doctor(profile: Path, assets: Path = DEFAULT_ASSETS) -> dict[str, Any]:
     }
 
 
+def verify(
+    profile: Path, assets: Path = DEFAULT_ASSETS, archive_dir: Path | None = None
+) -> dict[str, Any]:
+    """Re-render every archived bill and compare it with the stored PDF."""
+    from .verify import verify_archive
+
+    findings = verify_archive(profile, _archive_dir(profile, archive_dir), assets)
+    return {
+        "profile": str(profile),
+        "ok": not any(finding.failed for finding in findings),
+        "verified": [str(finding) for finding in findings if not finding.failed],
+        "failed": [str(finding) for finding in findings if finding.failed],
+    }
+
+
 #: `AGENTS.md` is tracked once, at the repository root, and force-included into
 #: the wheel at build time (see pyproject.toml). One tracked copy, because a
 #: second one is the copy that goes stale — which is the rule this file exists
@@ -414,6 +429,11 @@ def build_server(
     def check_profile() -> dict[str, Any]:
         """Whether the profile is complete and the IBAN valid."""
         return doctor(profile, assets)
+
+    @server.tool
+    def verify_archive() -> dict[str, Any]:
+        """Re-render every archived bill and compare it byte for byte with the stored PDF."""
+        return verify(profile, assets)
 
     return server
 

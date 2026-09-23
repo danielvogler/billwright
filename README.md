@@ -337,6 +337,24 @@ Relative paths resolve against the working directory, never against the
 installed package — which is what lets the profile, and its archive, live in a
 repository that merely depends on billwright.
 
+Every archived bill says what produced it. Its PDF metadata holds a SHA-256 of
+each profile file the render read, and `<name>.provenance.json` beside it adds
+the PDF's own hash, the billwright version and the time it was rendered. That
+travels with the document to wherever the archive is stored, so the answer
+does not depend on a git history or a bucket's object versions.
+
+```bash
+make verify                       # re-render the archive and compare bytes
+```
+
+`verify` re-renders every archived bill and compares it with the stored file,
+byte for byte. When they differ, the record says why: the PDF was altered, a
+profile file it was rendered from has been edited since, or another billwright
+version rendered it (reported, but not a failure, when nothing else changed).
+A bill archived before records existed can only be compared byte for byte; a
+difference there is reported rather than failed, because nothing can say which
+of those it was.
+
 ## The yearly accounts
 
 ```bash
@@ -404,8 +422,9 @@ uv sync --extra mcp
 billwright-mcp --profile data        # stdio, launched by your MCP client
 ```
 
-Eight tools, one per thing the CLI already does: `profile_info`, `list_bills`,
-`show_bill`, `new_bill`, `bill`, `statement`, `check_bills`, `check_profile`.
+Nine tools, one per thing the CLI already does: `profile_info`, `list_bills`,
+`show_bill`, `new_bill`, `bill`, `statement`, `check_bills`, `check_profile`,
+`verify_archive`.
 
 Three things are worth knowing about it, because they are why it is safe to
 have:

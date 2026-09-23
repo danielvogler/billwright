@@ -5,6 +5,10 @@
 # own environment (its dependencies, its profile), and a hook running in an
 # isolated venv would either fail to import weasyprint or scan with no profile
 # at all — passing for the wrong reason, which is worse than failing.
+
+# `make hooks` installs both stages: the commit-msg one is what enforces rule 10.
+default_install_hook_types: [pre-commit, commit-msg]
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.5
@@ -18,11 +22,27 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: [--fix=lf]
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
       - id: check-merge-conflict
       - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.17
+    hooks:
+      # Keeps uv.lock in step with pyproject.toml. CI installs with --locked,
+      # so a stale lock would otherwise surface as a red build after the push.
+      - id: uv-lock
+
+  # `billwright scan` knows what a company value looks like; gitleaks knows what
+  # a credential looks like. Neither covers the other.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
 
   - repo: local
     hooks:
@@ -39,3 +59,12 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      # AGENTS.md rule 10. A convention nothing checks is a convention that
+      # holds until the first tool that adds the trailer by default.
+      - id: no-agent-coauthors
+        name: no AI Co-Authored-By trailers
+        language: pygrep
+        stages: [commit-msg]
+        args: [--ignore-case, --multiline]
+        entry: 'co-authored-by:.*(claude|anthropic|copilot|cursor|gemini|codex|chatgpt|openai)'

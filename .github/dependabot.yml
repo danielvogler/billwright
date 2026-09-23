@@ -1,0 +1,55 @@
+---
+# Monthly and grouped: about one pull request per ecosystem per month, so they
+# get read rather than waved through. Security updates are separate and still
+# arrive as soon as an advisory is published, whatever this file says.
+version: 2
+
+updates:
+  # The workflows run with this repository's token, and every action is pinned
+  # to a commit SHA. A SHA is safe from a moved tag and blind to a patched
+  # vulnerability, so something has to bring the new SHA to a pull request.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Hook repositories are pinned by `rev`, which rots for the same reason the
+  # action SHAs do. The local hooks move with this repository.
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+    groups:
+      hooks:
+        patterns: ["*"]
+
+  # uv.lock is committed and CI installs with --locked, so a dependency only
+  # moves when a pull request moves it.
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: monthly
+    # GitHub already holds a release back for 3 days. A week means a version
+    # yanked or hot-fixed over its first weekend never reaches a pull request.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        patterns: ["*"]
+      # Majors stay out of the group and arrive one by one: a new WeasyPrint
+      # or qrbill major can move the layout or the payment part, and has to be
+      # rendered and looked at, not merged on a green build.
+      runtime-dependencies:
+        dependency-type: production
+        patterns: ["*"]
+        update-types: ["minor", "patch"]

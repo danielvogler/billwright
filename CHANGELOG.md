@@ -4,6 +4,39 @@ All notable changes to this project. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-09-23
+
+### Added
+
+- **A logo in the wordmark.** `brand.toml` can name a logo file in the profile
+  as `wordmark.mark` (`.svg` or `.png`). It is embedded in the PDF, so an
+  archived document renders without the file, and a named logo that is missing
+  stops the render rather than sending an invoice without it.
+- **An accent part in the wordmark.** `wordmark.accent` sets text straight after
+  the main line in the accent colour.
+- **The sample profile shows both,** with a stylesheet override of its own, and
+  the README's example documents are re-rendered from it.
+- **SECURITY.md**, with a private reporting route and what the repository
+  guards; `.env.example` for the two variables the CLI reads.
+- **PyPI install instructions** in the README, and project URLs and keywords on
+  the PyPI page.
+
+### Changed
+
+- Every `wordmark` key is optional. An absent `line1` or `tagline` used to be a
+  render error, and an empty `dot` was replaced by a period; an empty `dot` now
+  means no dot.
+- The README opens with a quick start, the example documents and an overview
+  graphic of what goes in and what comes out.
+- CI pins every action to a commit, scans the full history with gitleaks, and
+  Dependabot keeps actions, hooks and dependencies current.
+
+### Fixed
+
+- `init-profile` works from a PyPI install. It needed the repository's
+  `example/`, which the package did not include; the sample now ships inside
+  the package.
+
 ## [0.2.1] — 2026-09-12
 
 ### Added

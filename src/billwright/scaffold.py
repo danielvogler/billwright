@@ -14,6 +14,8 @@ missing from the scaffold.
 
 from __future__ import annotations
 
+import shutil
+import tomllib
 from datetime import date
 from pathlib import Path
 
@@ -157,17 +159,37 @@ def write_profile(target: Path, brand_source: Path | None = None) -> list[Path]:
         written.append(path)
 
     if brand_source is not None:
+        source_text = (brand_source / "brand.toml").read_text(encoding="utf-8")
         brand = target / "brand.toml"
-        brand.write_text(
-            (brand_source / "brand.toml").read_text(encoding="utf-8"), encoding="utf-8"
-        )
+        brand.write_text(source_text, encoding="utf-8")
         written.append(brand)
+        written.extend(_copy_mark(brand_source, target, source_text))
 
     # No bills/ or years/ directory, and no .gitkeep anywhere: git cannot track
     # an empty directory, and a committed-but-empty profile would be selected by
     # resolve_profile() and then fail instead of falling through to the sample.
     # Every writer creates its own directory when it first needs it.
     return written
+
+
+def _copy_mark(brand_source: Path, target: Path, brand_text: str) -> list[Path]:
+    """Copy the logo a copied brand.toml names, so the new profile can load.
+
+    Without it the new profile names a file it does not have, and load_brand
+    refuses it — correctly, but only at the first render.
+    """
+    name = tomllib.loads(brand_text).get("wordmark", {}).get("mark", "")
+    if not name:
+        return []
+    source = brand_source / name
+    if not source.is_file():
+        raise FileNotFoundError(
+            f"{brand_source / 'brand.toml'} names {source}, which does not exist"
+        )
+    copy = target / name
+    copy.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, copy)
+    return [copy]
 
 
 def bill_template(number: str, client_key: str, company: Company, rates: dict) -> str:

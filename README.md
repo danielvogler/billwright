@@ -4,6 +4,7 @@
 </picture>
 
 [![CI](https://github.com/danielvogler/billwright/actions/workflows/ci.yml/badge.svg)](https://github.com/danielvogler/billwright/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/billwright?style=flat&color=0E0E10&label=pypi)](https://pypi.org/p/billwright)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0E0E10.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-0E0E10.svg)](https://www.python.org/downloads/)
 [![uv](https://img.shields.io/badge/deps-uv-0E0E10.svg)](https://docs.astral.sh/uv/)
@@ -24,12 +25,18 @@ Read AGENTS.md, then set up a profile for my company and issue a bill.
 It walks you through the setup once, then turns the line items you paste into a
 finished invoice.
 
+**What comes out:** an invoice with the Swiss QR payment part, and the year-end
+accounts, both in the sample company's own logo, colours and type.
+
 <p align="center">
-  <img src="docs/example-invoice.png" alt="A rendered invoice: wordmark, line items, computed total, and the Swiss QR payment part at the foot" width="380">
+  <img src="docs/example-invoice.png" alt="A rendered invoice: logo and wordmark, line items, computed total, and the Swiss QR payment part at the foot" width="380">
   <img src="docs/example-statement.png" alt="A rendered year-end statement: Erfolgsrechnung and Vermoegensstand" width="380">
 </p>
 
 <p align="center"><em>Both of these render from a fresh clone, with no configuration.</em></p>
+
+**What it takes:** set your company up once, then paste line items for each
+bill. The arithmetic is Python's, never the agent's.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
@@ -255,6 +262,18 @@ sudo apt install libpango-1.0-0 libpangoft2-1.0-0 poppler-utils
 make setup        # uv sync
 ```
 
+Without a clone, it installs from [PyPI](https://pypi.org/p/billwright) — the
+same native libraries apply:
+
+```bash
+uvx billwright --help               # run it once, nothing installed for good
+uv tool install billwright           # or keep the `billwright` command around
+```
+
+An installed copy starts a profile the same way a clone does:
+`billwright init-profile --into data` writes one to fill in, taking its starting
+look from the sample shipped inside the package.
+
 ## Try it immediately
 
 A fresh clone renders straight away, because `example/` is a complete fictional
@@ -276,6 +295,11 @@ make bill BILL=RE-26002           # renders into out/
 open out/*RE-26002.pdf            # look at it
 make archive BILL=RE-26002        # write the final copy into archive/
 ```
+
+Bill numbers are always `RE-YYNNN`: `RE-`, the two-digit year, then a
+three-digit sequence that restarts every year, so at most 999 bills a year.
+`RE-26001` is the only shape that parses, not a sample of one; the scheme is
+fixed, and there is no setting to carry on an existing series in another format.
 
 A bill is a small TOML file:
 

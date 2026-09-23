@@ -42,8 +42,8 @@ font_file = "fonts/….otf"
 ink = "#…"  muted = "#…"  rule = "#…"
 accent = "#…"  accent-soft = "#…"  accent-faint = "#…"
 
-[wordmark]                 # the logo, typeset rather than embedded
-line1 = "…"  line2 = "…"  dot = "."  tagline = "…"
+[wordmark]                 # typeset text, plus an optional drawn mark
+mark = "logo.svg"  line1 = "…"  line2 = "…"  accent = "…"  dot = "."  tagline = "…"
 ```
 
 Add a token by adding a key — no Python change. The CSS may only reference

@@ -8,7 +8,7 @@
 # To bill for your own company, copy this directory to `data/` (which is
 # gitignored) and replace the values, or run `billwright init-profile`.
 
-name = "EXAMPLE CONSULTING"
+name = "BILLWRIGHT"
 person = "Dr. Alex Muster"
 email = "billing@example.com"
 website = "example.com"
@@ -33,7 +33,7 @@ default_terms_days = 14
 default_language = "de"
 
 [address]
-name = "EXAMPLE CONSULTING"
+name = "BILLWRIGHT"
 street = "Musterstrasse"
 house_number = "1"
 postal_code = "8001"

@@ -1,0 +1,13 @@
+/* The example company's own typesetting, appended after the packaged styles.
+ * Anything a profile wants beyond brand.toml's tokens goes in a file like this:
+ * overrides.css for every document, bill.css or statement.css for one. */
+
+:root {
+  --size-wordmark: 18pt;
+}
+
+.wordmark {
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  text-transform: none;
+}

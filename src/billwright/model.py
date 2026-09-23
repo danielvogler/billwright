@@ -257,6 +257,9 @@ class Brand(Frozen):
     font_family: str = "Inter"
     font_file: str = "fonts/InterVariable.ttf"
     wordmark: dict[str, str] = Field(default_factory=dict)
+    #: The logo named by ``wordmark.mark``, read once at load time and carried
+    #: as a data URI, so the rendered PDF is self-contained. Empty: no logo.
+    mark: str = ""
 
     def css_variables(self) -> str:
         return "\n".join(f"  --{name}: {value};" for name, value in sorted(self.colors.items()))

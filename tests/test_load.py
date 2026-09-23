@@ -1,5 +1,6 @@
 """The profile loads, and a malformed profile fails loudly rather than quietly."""
 
+import shutil
 from decimal import Decimal
 
 import pytest
@@ -19,7 +20,7 @@ BILL = "RE-26001"
 
 def test_company_loads(profile):
     company = load_company(profile)
-    assert company.name == "EXAMPLE CONSULTING"
+    assert company.name == "BILLWRIGHT"
     assert company.vat_registered is False
 
 
@@ -33,7 +34,46 @@ def test_iban_is_normalised_for_the_payment_part(profile):
 def test_brand_tokens_load(profile):
     brand = load_brand(profile)
     assert brand.colors["accent"].startswith("#")
-    assert brand.wordmark["line1"] == "EXAMPLE"
+    assert brand.wordmark["line2"] == "bill"
+    assert brand.wordmark["accent"] == "wright"
+
+
+def test_the_logo_is_embedded_as_a_data_uri(profile):
+    """Embedded, not linked: an archived PDF must render without the file."""
+    brand = load_brand(profile)
+    assert brand.mark.startswith("data:image/svg+xml;base64,")
+
+
+def test_a_named_logo_that_is_missing_fails_loudly(tmp_path, profile):
+    """Rendering without it would send an invoice without the logo, and exit 0."""
+    copy = tmp_path / "profile"
+    shutil.copytree(profile, copy)
+    (copy / "mark.svg").unlink()
+    with pytest.raises(ProfileError, match="does not exist"):
+        load_brand(copy)
+
+
+def test_a_logo_must_be_svg_or_png(tmp_path, profile):
+    copy = tmp_path / "profile"
+    shutil.copytree(profile, copy)
+    brand_toml = copy / "brand.toml"
+    brand_toml.write_text(
+        brand_toml.read_text(encoding="utf-8").replace('"mark.svg"', '"mark.gif"'),
+        encoding="utf-8",
+    )
+    with pytest.raises(ProfileError, match=r"\.svg or \.png"):
+        load_brand(copy)
+
+
+def test_no_logo_means_an_empty_mark(tmp_path, profile):
+    copy = tmp_path / "profile"
+    shutil.copytree(profile, copy)
+    brand_toml = copy / "brand.toml"
+    brand_toml.write_text(
+        brand_toml.read_text(encoding="utf-8").replace('mark = "mark.svg"\n', ""),
+        encoding="utf-8",
+    )
+    assert load_brand(copy).mark == ""
 
 
 def test_brand_colors_stay_an_open_mapping(profile):

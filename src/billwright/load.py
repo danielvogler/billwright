@@ -7,6 +7,7 @@ wrong should fail to render, not render wrongly.
 
 from __future__ import annotations
 
+import base64
 import os
 import tomllib
 from collections.abc import Mapping
@@ -243,14 +244,41 @@ def load_company(profile: Path) -> Company:
 def load_brand(profile: Path) -> Brand:
     path = profile / "brand.toml"
     data = _read(path)
+    wordmark = dict(data.get("wordmark", {}))
     return _build(
         Brand,
         path,
         colors=dict(data.get("colors", {})),
         font_family=data.get("font_family", "Inter"),
         font_file=data.get("font_file", "fonts/InterVariable.ttf"),
-        wordmark=dict(data.get("wordmark", {})),
+        wordmark=wordmark,
+        mark=_mark_data_uri(profile, wordmark.get("mark", ""), path),
     )
+
+
+MARK_TYPES = {".svg": "image/svg+xml", ".png": "image/png"}
+
+
+def _mark_data_uri(profile: Path, name: str, source: Path) -> str:
+    """Read the logo named by ``wordmark.mark`` into a data URI.
+
+    Resolved against the profile, like everything else a profile names, and
+    embedded rather than linked: the PDF has to render identically in ten years,
+    from an archive that no longer sits next to the file.
+
+    A named mark that is missing raises. Rendering without it would send a
+    client an invoice without the company's logo and exit 0.
+    """
+    if not name:
+        return ""
+    mark = profile / name
+    media_type = MARK_TYPES.get(mark.suffix.lower())
+    if media_type is None:
+        raise ProfileError(f"{source}: wordmark.mark must be an .svg or .png file, got {name!r}")
+    if not mark.is_file():
+        raise ProfileError(f"{source}: wordmark.mark names {mark}, which does not exist")
+    encoded = base64.b64encode(mark.read_bytes()).decode("ascii")
+    return f"data:{media_type};base64,{encoded}"
 
 
 def load_client(profile: Path, key: str) -> Client:

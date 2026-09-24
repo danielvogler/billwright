@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, StrictUndefined
 
 from . import __version__
-from .fonts import FACES, FontError, describe_missing, fonts_dir, missing_faces
+from .fonts import FACE_FORMATS, FontError, declared_faces, describe_missing, missing_faces
 from .i18n import MONTHS, country_name, strings, unit_name
 from .model import Bill, Brand, Company, Statement
 from .money import format_amount, format_chf, format_quantity
@@ -88,24 +88,25 @@ def font_face_css(brand: Brand, assets: Path) -> str:
     Vendored rather than system-installed so the build cannot silently
     substitute a different font into a client-facing PDF on another machine.
 
-    An absent face raises. It used to `continue`, which made the docstring above
-    false in the one case it was written for: the faces were not in the wheel, so
-    an installed copy quietly typeset client invoices in whatever WeasyPrint
-    chose and exited 0.
+    An absent packaged face raises. It used to `continue`, which made the
+    docstring above false in the one case it was written for: the faces were not
+    in the wheel, so an installed copy quietly typeset client invoices in
+    whatever WeasyPrint chose and exited 0. Faces a profile declares were
+    checked when ``brand.toml`` was loaded.
     """
-    if missing := missing_faces(assets):
+    if not brand.faces and (missing := missing_faces(assets)):
         raise FontError(describe_missing(assets, missing))
 
     blocks = []
-    for filename, weight in FACES:
-        path = fonts_dir(assets) / filename
+    for path, weight in declared_faces(brand, assets):
+        media_type, css_format = FACE_FORMATS[path.suffix.lower()]
         encoded = base64.b64encode(path.read_bytes()).decode("ascii")
         blocks.append(
             f"@font-face {{\n"
             f"  font-family: '{brand.font_family}';\n"
             f"  font-weight: {weight};\n"
             f"  font-style: normal;\n"
-            f"  src: url(data:font/otf;base64,{encoded}) format('opentype');\n"
+            f"  src: url(data:{media_type};base64,{encoded}) format('{css_format}');\n"
             f"}}"
         )
     return "\n".join(blocks)

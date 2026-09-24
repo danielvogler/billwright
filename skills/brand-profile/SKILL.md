@@ -102,7 +102,8 @@ width = sum(font["hmtx"][cmap[ord(c)]][0]/upm*size + tracking*size for c in text
 
 ## Fonts
 
-Vendor the file into the repo; do not rely on a system install. A machine with a
+Vendor the files into the profile and declare them in `faces`; do not rely on
+a system install. A machine with a
 different font set must not be able to substitute a face into a client-facing
 document. Prefer static weights over a variable font — see the WeasyPrint
 reference in the generator skill.
@@ -113,7 +114,11 @@ Check the licence permits redistribution (SIL OFL does) and say so in `LICENSE`.
 
 ```toml
 font_family = "…"
-font_file = "fonts/….otf"
+faces = [                  # optional; without it, the packaged Inter faces
+  { file = "fonts/…-Regular.otf",  weight = 400 },
+  { file = "fonts/…-Medium.otf",   weight = 500 },
+  { file = "fonts/…-SemiBold.otf", weight = 600 },
+]
 
 [colors]
 ink = "#…"  muted = "#…"  rule = "#…"

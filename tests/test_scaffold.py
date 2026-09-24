@@ -5,13 +5,14 @@ facts. These tests pin the two ends: the scaffold covers every key the loader
 reads, and a filled-in scaffold passes `doctor`.
 """
 
+import shutil
 import tomllib
 
 import pytest
 
 from billwright.doctor import Level, check_company, diagnose
-from billwright.load import load_brand
-from billwright.paths import PACKAGED_EXAMPLE, sample_profile
+from billwright.load import ProfileError, load_brand
+from billwright.paths import DEFAULT_ASSETS, PACKAGED_EXAMPLE, sample_profile
 from billwright.scaffold import write_profile
 
 
@@ -83,6 +84,43 @@ def test_the_logo_a_copied_brand_names_is_copied_with_it(profile, tmp_path):
     written = write_profile(tmp_path / "new", brand_source=profile)
     assert tmp_path / "new" / "mark.svg" in written
     assert load_brand(tmp_path / "new").mark.startswith("data:image/svg+xml")
+
+
+def test_the_faces_a_copied_brand_declares_are_copied_with_it(profile, tmp_path):
+    """Same reason as the logo: a profile naming files it lacks cannot render."""
+    source = tmp_path / "source"
+    shutil.copytree(profile, source)
+    (source / "fonts").mkdir()
+    shutil.copyfile(DEFAULT_ASSETS / "fonts" / "Inter-Regular.otf", source / "fonts" / "R.otf")
+    brand = source / "brand.toml"
+    brand.write_text(
+        brand.read_text(encoding="utf-8").replace(
+            'font_family = "Inter"\n',
+            'font_family = "Inter"\nfaces = [{ file = "fonts/R.otf", weight = 400 }]\n',
+        ),
+        encoding="utf-8",
+    )
+
+    written = write_profile(tmp_path / "new", brand_source=source)
+
+    assert tmp_path / "new" / "fonts" / "R.otf" in written
+    assert load_brand(tmp_path / "new").faces[0].file == tmp_path / "new" / "fonts" / "R.otf"
+
+
+def test_a_copied_brand_naming_a_file_outside_it_is_refused(profile, tmp_path):
+    """Otherwise the copy would be written outside the new profile."""
+    source = tmp_path / "source"
+    shutil.copytree(profile, source)
+    brand = source / "brand.toml"
+    brand.write_text(
+        brand.read_text(encoding="utf-8").replace('mark = "mark.svg"', 'mark = "../escape.svg"'),
+        encoding="utf-8",
+    )
+    (tmp_path / "escape.svg").write_text("<svg/>", encoding="utf-8")
+
+    with pytest.raises(ProfileError, match="inside the profile"):
+        write_profile(tmp_path / "new" / "deep", brand_source=source)
+    assert not (tmp_path / "new").exists()
 
 
 def test_init_profile_falls_back_to_the_packaged_sample(tmp_path):

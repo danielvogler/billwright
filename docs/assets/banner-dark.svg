@@ -14,11 +14,19 @@
     <circle cx="72" cy="74" r="4" fill="#6FA3D6"/>
     <text x="88" y="79" font-size="14" font-weight="600" letter-spacing="2.2" fill="#A3A39D">SWISS QR INVOICING &#183; YEAR-END ACCOUNTS</text>
 
-    <!-- The accent period is the mark. It is the same device the tool prints on
-         every invoice: `_wordmark.html.j2` ends line two on an accent-coloured
-         dot, and there is no drawn logo to embed here for the same reason. -->
-    <text x="70" y="182" font-size="92" letter-spacing="-4.2">
-      <tspan fill="#FDFDFB" font-weight="700">bill</tspan><tspan fill="#A3A39D" font-weight="400">wright</tspan><tspan fill="#6FA3D6" font-weight="700">.</tspan>
+    <!-- The mark, as the example profile draws it before its wordmark on every
+         invoice (example/mark.svg): three line items narrowing into one point,
+         the total. Kept in the print accent on both grounds, because it is the
+         logo, and its white bars keep it legible on near-black. -->
+    <svg x="72" y="112" width="70" height="70" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="15" fill="#2F5C86"/>
+      <rect x="14" y="16" width="36" height="6.5" rx="3.25" fill="#FFFFFF"/>
+      <rect x="14" y="28.75" width="25" height="6.5" rx="3.25" fill="#FFFFFF" fill-opacity="0.72"/>
+      <rect x="14" y="41.5" width="14" height="6.5" rx="3.25" fill="#FFFFFF" fill-opacity="0.45"/>
+      <circle cx="44.5" cy="44.75" r="5.25" fill="#FFFFFF"/>
+    </svg>
+    <text x="160" y="182" font-size="92" letter-spacing="-4.2">
+      <tspan fill="#FDFDFB" font-weight="700">bill</tspan><tspan fill="#A3A39D" font-weight="400">wright</tspan>
     </text>
 
     <text x="72" y="238" font-size="25" fill="#A3A39D">Invoices your client pays by scanning,</text>

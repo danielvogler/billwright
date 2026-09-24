@@ -27,10 +27,11 @@ COMPANY = """# Your company. Everything on the invoice above the line items come
 # IBAN's checksum, the Swiss QR field lengths, and whether anything is missing,
 # and lists everything wrong at once.
 
-# required — the name on the invoice and in the QR payment part
+# required — the name on the invoice
 name = ""
 
-# optional — the person who signs; shown under the greeting
+# optional — the person who signs; shown in the return address and under the
+# greeting, and never in the QR payment part
 person = ""
 
 # optional — printed in the header and the footer
@@ -68,6 +69,7 @@ default_language = "de"
 # required — the issuer's address. These are Swiss QR bill fields, so they have
 # length limits (name and street 70, house number and postal code 16) and the
 # country must be a two-letter code. Only CH issuers are supported today.
+# `name` is also the creditor in the QR payment part, unless [qr] says otherwise.
 [address]
 name = ""
 street = ""
@@ -79,6 +81,13 @@ country = "CH"
 # optional — extra lines printed above the street, e.g. a department,
 # "c/o", or a building name
 lines = []
+
+# optional — the name your bank holds the account under, if it is not
+# address.name: a sole proprietor's account is often in their own name. Banks
+# match it against the account holder, and a mismatch bounces the payment.
+# `billwright doctor` asks for it when `person` and address.name differ.
+[qr]
+creditor_name = ""
 """
 
 CLIENT = """# One file per client. The filename without .toml is the key you pass to

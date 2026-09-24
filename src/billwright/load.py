@@ -238,7 +238,16 @@ def load_company(profile: Path) -> Company:
         legal_form=data.get("legal_form", ""),
         default_terms_days=int(data.get("default_terms_days", 14)),
         default_language=data.get("default_language", "de"),
+        qr_creditor_name=_qr_creditor_name(data, path),
     )
+
+
+def _qr_creditor_name(data: dict, path: Path) -> str:
+    """``[qr] creditor_name``, stripped: a blank one means address.name, not a blank payee."""
+    qr = data.get("qr", {})
+    if not isinstance(qr, dict):
+        raise ProfileError(f'{path}: qr must be a table, e.g. [qr] creditor_name = "…"')
+    return str(qr.get("creditor_name", "")).strip()
 
 
 def load_brand(profile: Path) -> Brand:

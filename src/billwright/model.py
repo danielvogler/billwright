@@ -84,6 +84,9 @@ class Company(Frozen):
     """The issuer. Loaded from ``<profile>/company.toml``."""
 
     name: str
+    #: Who signs. Printed in the return address and the signature, and nowhere
+    #: in the payment part: for a GmbH or an AG the signer is not the account
+    #: holder.
     person: str = ""
     address: Address
     email: str = ""
@@ -102,6 +105,15 @@ class Company(Frozen):
     legal_form: str = ""
     default_terms_days: int = 14
     default_language: str = "de"
+    #: ``[qr] creditor_name``: the account holder, when it is not
+    #: ``address.name``, e.g. a sole proprietor whose account is in their own
+    #: name rather than the trading name. Empty: ``address.name``.
+    qr_creditor_name: QrName = ""
+
+    @property
+    def creditor_name(self) -> str:
+        """The name the bank matches against the account holder."""
+        return self.qr_creditor_name or self.address.name
 
     @property
     def effective_vat_rate(self) -> Decimal:

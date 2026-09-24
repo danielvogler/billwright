@@ -37,9 +37,70 @@ def test_creditor_iban_is_present(svg, profile):
     assert load_company(profile).iban in svg
 
 
-def test_creditor_is_the_account_holder_not_the_trading_name(svg, profile):
-    """Banks match the account holder; a mismatch bounces the payment."""
-    assert load_company(profile).person in svg
+def incorporated(profile, **changes):
+    """The example issuer as a GmbH: account held by the entity, letter signed by a person."""
+    company = load_company(profile)
+    address = company.address.model_copy(update={"name": "Muster Engineering GmbH"})
+    fields = {"address": address, "person": "Alex Muster", "qr_creditor_name": "", **changes}
+    return company.model_copy(update=fields)
+
+
+def test_the_creditor_is_the_address_name_not_the_signer(profile):
+    """For a GmbH the account is held by the entity, and `person` only signs.
+
+    The creditor used to be taken from `person`, which for an incorporated
+    issuer asked the client to pay a different legal party than the one that
+    invoiced them. Nothing on the page showed it; a bank bouncing the payment
+    did.
+    """
+    svg = build_qr_svg(find_bill(profile, BILL), incorporated(profile), "de")
+    assert "Muster Engineering GmbH" in svg
+    assert "Alex Muster" not in svg
+
+
+def test_an_explicit_creditor_name_overrides_the_address_name(profile):
+    """A sole proprietor whose account is in their own name says so in [qr]."""
+    company = incorporated(profile, qr_creditor_name="Dr. Alex Muster")
+    svg = build_qr_svg(find_bill(profile, BILL), company, "de")
+    assert "Dr. Alex Muster" in svg
+
+
+def test_a_blank_creditor_name_falls_back_to_the_address_name(profile, tmp_path):
+    """Whitespace is not a payee: it must not reach the payment part."""
+    import shutil
+
+    root = tmp_path / "profile"
+    shutil.copytree(profile, root)
+    path = root / "company.toml"
+    path.write_text(
+        path.read_text(encoding="utf-8").replace(
+            'creditor_name = "Dr. Alex Muster"', 'creditor_name = " "'
+        ),
+        encoding="utf-8",
+    )
+    company = load_company(root)
+    assert company.creditor_name == company.address.name
+
+
+def test_a_qr_value_that_is_not_a_table_is_a_profile_error(profile, tmp_path):
+    import shutil
+
+    from billwright.load import ProfileError
+
+    root = tmp_path / "profile"
+    shutil.copytree(profile, root)
+    path = root / "company.toml"
+    text = path.read_text(encoding="utf-8").replace('[qr]\ncreditor_name = "Dr. Alex Muster"\n', "")
+    path.write_text(
+        text.replace('person = "Dr. Alex Muster"', 'person = "Dr. Alex Muster"\nqr = "x"'),
+        encoding="utf-8",
+    )
+    with pytest.raises(ProfileError, match="qr must be a table"):
+        load_company(root)
+
+
+def test_the_example_creditor_comes_from_its_qr_table(svg, profile):
+    assert load_company(profile).qr_creditor_name in svg
 
 
 def test_debtor_is_the_client(svg, profile):

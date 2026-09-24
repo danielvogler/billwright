@@ -98,6 +98,38 @@ def test_a_too_long_name_is_caught(broken):
     assert "70" in messages(check_company(broken))
 
 
+def test_a_signer_who_is_not_the_address_name_asks_who_holds_the_account(broken):
+    """The QR creditor is the address name unless [qr] says otherwise.
+
+    When the signer differs from it, which name the bank expects is a fact only
+    the user has, and the default was once the other one. Unanswered, like
+    `vat_registered`, rather than guessed.
+    """
+    edit_company(broken, '[qr]\ncreditor_name = "Dr. Alex Muster"\n', "")
+    assert "creditor_name" in messages(check_company(broken), Level.WARNING)
+
+
+def test_an_answered_creditor_name_is_not_asked_again(broken):
+    assert "creditor_name" not in messages(check_company(broken), Level.WARNING)
+
+
+def test_a_qr_value_that_is_not_a_table_is_reported_not_raised(broken):
+    """Doctor reports everything at once; a crash reports nothing."""
+    edit_company(broken, '[qr]\ncreditor_name = "Dr. Alex Muster"\n', "")
+    edit_company(broken, 'person = "Dr. Alex Muster"', 'person = "Dr. Alex Muster"\nqr = "x"')
+    assert "qr must be a table" in messages(check_company(broken))
+
+
+def test_a_blank_creditor_name_is_still_unanswered(broken):
+    edit_company(broken, 'creditor_name = "Dr. Alex Muster"', 'creditor_name = " "')
+    assert "creditor_name" in messages(check_company(broken), Level.WARNING)
+
+
+def test_a_too_long_creditor_name_is_caught(broken):
+    edit_company(broken, 'creditor_name = "Dr. Alex Muster"', f'creditor_name = "{"A" * 71}"')
+    assert "qr.creditor_name" in messages(check_company(broken))
+
+
 def test_everything_is_reported_at_once(broken):
     """A user who fixes one field per run gives up before the profile is valid."""
     edit_company(broken, 'iban = "CH93 0076 2011 6238 5295 7"', f'iban = "{BAD_CHECKSUM_IBAN}"')

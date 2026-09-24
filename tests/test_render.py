@@ -163,3 +163,32 @@ def test_the_version_is_the_installed_distributions(tmp_path):
     from billwright import __version__
 
     assert __version__ == version("billwright")
+
+
+def _embedded_fonts(path):
+    """The base names of every font the PDF embeds, without the subset prefix."""
+    names = set()
+    for page in PdfReader(str(path)).pages:
+        fonts = page.get("/Resources", {}).get("/Font", {})
+        for font in fonts.values():
+            names.add(str(font.get_object()["/BaseFont"]).lstrip("/").split("+")[-1])
+    return names
+
+
+def test_the_packaged_faces_are_the_ones_embedded(tmp_path, profile, assets):
+    """The document is typeset in the faces it embeds, not in a system font.
+
+    WeasyPrint ignores @font-face unless it is handed a FontConfiguration, so
+    the faces were read, encoded and then dropped: a machine with Inter
+    installed typeset the invoice in its own copy, and one without it in
+    whatever fontconfig chose, with an exit code of 0 either way. A family name
+    no system has makes the difference visible in the PDF.
+    """
+    brand = load_brand(profile).model_copy(update={"font_family": "BillwrightProbe"})
+    target = tmp_path / "probe.pdf"
+
+    render_bill(find_bill(profile, BILL), load_company(profile), brand, assets, target, False)
+
+    embedded = _embedded_fonts(target)
+    assert embedded
+    assert all(name.startswith("BillwrightProbe") for name in embedded), embedded

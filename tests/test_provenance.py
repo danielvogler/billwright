@@ -7,6 +7,7 @@ travels with the document, so the storage choice stops being load-bearing.
 
 import hashlib
 import json
+import shutil
 
 from pypdf import PdfReader
 
@@ -124,3 +125,24 @@ def test_a_draft_gets_no_record(profile, tmp_path):
     argv = ["--profile", str(profile), "--out", str(tmp_path / "out"), "bill", BILL]
     assert billwright_main(argv) == 0
     assert not list((tmp_path / "out").glob("*.json"))
+
+
+def test_declared_faces_are_fingerprinted_instead_of_the_packaged_ones(profile, assets, tmp_path):
+    """The faces a profile declares are the ones embedded, so they are the inputs."""
+    root = tmp_path / "profile"
+    shutil.copytree(profile, root)
+    (root / "fonts").mkdir()
+    shutil.copyfile(assets / "fonts" / "Inter-Regular.otf", root / "fonts" / "Own.otf")
+    brand = root / "brand.toml"
+    brand.write_text(
+        brand.read_text(encoding="utf-8").replace(
+            'font_family = "Inter"\n',
+            'font_family = "Own"\nfaces = [{ file = "fonts/Own.otf", weight = 400 }]\n',
+        ),
+        encoding="utf-8",
+    )
+
+    stamp = bill_stamp(root, find_bill(root, BILL), load_brand(root), assets, qr=True)
+
+    assert stamp.inputs["fonts/Own.otf"] == sha256(root / "fonts" / "Own.otf")
+    assert not [name for name in stamp.inputs if name.startswith("assets:")]

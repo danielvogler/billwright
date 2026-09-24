@@ -1,6 +1,6 @@
 [project]
 name = "billwright"
-version = "0.3.0"
+version = "0.4.0"
 description = "Invoices and year-end accounts, typeset as PDFs from plain TOML"
 readme = "README.md"
 requires-python = ">=3.11"

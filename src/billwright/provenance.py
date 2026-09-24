@@ -105,8 +105,14 @@ def fingerprint(profile: Path, paths: list[Path]) -> dict[str, str]:
     return {path.relative_to(profile).as_posix(): sha256(path) for path in sorted(paths)}
 
 
-def face_inputs(assets: Path) -> dict[str, str]:
-    """The embedded faces, keyed apart from profile files: they shape every byte."""
+def face_inputs(profile: Path, brand: Brand, assets: Path) -> dict[str, str]:
+    """The embedded faces: they shape every byte of the document.
+
+    A profile's declared faces are profile files like any other. The packaged
+    faces are keyed apart, since they come from ``--assets``, not the profile.
+    """
+    if brand.faces:
+        return fingerprint(profile, sorted({face.file for face in brand.faces}))
     directory = fonts_dir(assets)
     return {
         f"{ASSETS_PREFIX}fonts/{filename}": sha256(directory / filename)
@@ -117,7 +123,10 @@ def face_inputs(assets: Path) -> dict[str, str]:
 
 def bill_stamp(profile: Path, bill: Bill, brand: Brand, assets: Path, *, qr: bool) -> Stamp:
     """The stamp for rendering ``bill`` as it now stands in ``profile`` and ``assets``."""
-    inputs = {**fingerprint(profile, bill_inputs(profile, bill, brand)), **face_inputs(assets)}
+    inputs = {
+        **fingerprint(profile, bill_inputs(profile, bill, brand)),
+        **face_inputs(profile, brand, assets),
+    }
     return Stamp(inputs=dict(sorted(inputs.items())), language=bill.language, qr=qr)
 
 

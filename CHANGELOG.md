@@ -4,6 +4,63 @@ All notable changes to this project. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-09-24
+
+This release changes two things an existing profile will notice: the name in
+the QR payment part, for a profile whose `person` differs from its
+`address.name`, and the bytes of every PDF. Run `billwright doctor` after
+upgrading.
+
+### Added
+
+- **Your own typeface.** `brand.toml` can declare static `.otf` or `.ttf` faces
+  in the profile as `faces = [{ file, weight }, …]`. Without it, the Inter faces
+  shipped with billwright are used as before. A declared face that is missing,
+  in another format or declared twice for one weight stops the render.
+- **Every bill says what produced it.** Its PDF metadata carries one digest over
+  every file the render read, including the embedded faces, and the language
+  and QR options it was rendered with. `bill --archive` also writes
+  `<name>.provenance.json` beside the PDF, listing each input with its hash,
+  the PDF's own hash, the billwright version and the render time. The list
+  stays in the archive; the PDF, which goes to the client, names no file.
+- **`billwright verify`** (and `make verify`, and the `verify_archive` MCP
+  tool) re-renders every archived bill and compares it byte for byte with the
+  stored PDF. When they differ, it says why: the PDF was altered, an input was
+  edited since, or another billwright version rendered it, which is reported
+  but not a failure. Bills archived before this release are compared byte for
+  byte, and a difference is reported rather than failed.
+- **`doctor` checks `brand.toml`**, so a missing logo or face is reported
+  before the first render, and warns when declared faces lack a weight the
+  stylesheets use.
+- **`[qr] creditor_name`** in `company.toml`, for when the bank holds the
+  account under another name than `address.name`.
+
+### Changed
+
+- **The QR creditor is `address.name`**, not `person`. `person` only signs, and
+  for a GmbH or an AG is not the account holder. A profile whose `person` and
+  `address.name` differ and that sets no `[qr] creditor_name` now names
+  `address.name` as the payee; `doctor` warns until one is set. A sole
+  proprietor whose account is in their own name sets it to that name.
+- **PDF bytes differ from earlier versions** of the same bill: the faces now
+  come from the embedded files, and the metadata carries the input digest.
+- The README banner draws the example logo.
+
+### Removed
+
+- `brand.toml`'s `font_file`, which nothing read. A profile that still sets it
+  loads; `doctor` flags it.
+
+### Fixed
+
+- **The embedded faces were not used.** WeasyPrint ignored the `@font-face`
+  rules, so a machine with Inter installed typeset invoices in its own copy,
+  and one without it, such as CI or a fresh install, in a fallback face, with
+  an exit code of 0.
+- A logo or face named by an absolute path or with `..` was read from outside
+  the profile, and `init-profile --from` copied it outside the new profile.
+  Both are now refused.
+
 ## [0.3.0] — 2026-09-23
 
 ### Added

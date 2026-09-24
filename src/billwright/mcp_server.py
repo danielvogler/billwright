@@ -189,6 +189,7 @@ def render_bill(
     is a separate decision from rendering — exactly as `make bill` and
     `make archive` are two commands and not one.
     """
+    from .provenance import bill_stamp, write_record
     from .render import render_bill as render
 
     company = load_company(profile)
@@ -204,7 +205,10 @@ def render_bill(
         out=out if out is not None else default_out(),
         archive_dir=_archive_dir(profile, archive_dir),
     )
-    result = render(bill, company, brand, assets, target, True, profile)
+    stamp = bill_stamp(profile, bill, brand, assets, qr=True)
+    result = render(bill, company, brand, assets, target, True, profile, stamp)
+    if archive:
+        write_record(result.path, stamp)
     return {
         "profile": str(profile),
         "company": company.name,
@@ -302,6 +306,21 @@ def doctor(profile: Path, assets: Path = DEFAULT_ASSETS) -> dict[str, Any]:
         "ready": not any(p.level is Level.ERROR for p in problems),
         "errors": [str(p) for p in problems if p.level is Level.ERROR],
         "warnings": [str(p) for p in problems if p.level is not Level.ERROR],
+    }
+
+
+def verify(
+    profile: Path, assets: Path = DEFAULT_ASSETS, archive_dir: Path | None = None
+) -> dict[str, Any]:
+    """Re-render every archived bill and compare it with the stored PDF."""
+    from .verify import verify_archive
+
+    findings = verify_archive(profile, _archive_dir(profile, archive_dir), assets)
+    return {
+        "profile": str(profile),
+        "ok": not any(finding.failed for finding in findings),
+        "verified": [str(finding) for finding in findings if not finding.failed],
+        "failed": [str(finding) for finding in findings if finding.failed],
     }
 
 
@@ -410,6 +429,11 @@ def build_server(
     def check_profile() -> dict[str, Any]:
         """Whether the profile is complete and the IBAN valid."""
         return doctor(profile, assets)
+
+    @server.tool
+    def verify_archive() -> dict[str, Any]:
+        """Re-render every archived bill and compare it byte for byte with the stored PDF."""
+        return verify(profile, assets)
 
     return server
 

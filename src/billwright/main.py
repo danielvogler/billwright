@@ -52,6 +52,7 @@ def _load_context(profile: Path) -> tuple[Company, Brand]:
 
 def cmd_bill(args: argparse.Namespace) -> int:
     from .load import find_bill
+    from .provenance import bill_stamp, write_record
     from .render import render_bill
 
     profile = _profile(args)
@@ -68,8 +69,13 @@ def cmd_bill(args: argparse.Namespace) -> int:
         company, bill, archive=args.archive, out=Path(args.out), archive_dir=archive_dir
     )
 
-    result = render_bill(bill, company, brand, Path(args.assets), target, not args.no_qr, profile)
+    stamp = bill_stamp(profile, bill, brand, Path(args.assets), qr=not args.no_qr)
+    result = render_bill(
+        bill, company, brand, Path(args.assets), target, not args.no_qr, profile, stamp
+    )
     print(f"{result.path}  ({result.pages} page(s), payment part: {result.payment_layout})")
+    if args.archive:
+        print(f"{write_record(result.path, stamp)}  (provenance record)")
     if result.pages > 1:
         print(
             "  note: the invoice body runs past one page, so the payment part "
@@ -231,6 +237,26 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_verify(args: argparse.Namespace) -> int:
+    from .verify import verify_archive
+
+    profile = _profile(args)
+    archive_dir = _archive_dir(args, profile)
+    findings = verify_archive(profile, archive_dir, Path(args.assets))
+    if not findings:
+        print(f"{archive_dir}: no archived bills to verify")
+        return 0
+
+    failed = [finding for finding in findings if finding.failed]
+    for finding in findings:
+        print(finding, file=sys.stderr if finding.failed else sys.stdout)
+    if failed:
+        print(f"\n{len(failed)} of {len(findings)} archived bill(s) failed", file=sys.stderr)
+        return 1
+    print(f"{archive_dir}: {len(findings)} archived bill(s) verified")
+    return 0
+
+
 def cmd_scan(args: argparse.Namespace) -> int:
     from .scan import main as scan_main
 
@@ -309,6 +335,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     doctor = sub.add_parser("doctor", help="validate the profile and the environment")
     doctor.set_defaults(func=cmd_doctor)
+
+    verify = sub.add_parser(
+        "verify", help="re-render every archived bill and compare it with the stored PDF"
+    )
+    verify.set_defaults(func=cmd_verify)
 
     scan = sub.add_parser("scan", help="fail if a tracked file holds a private value")
     scan.add_argument("--root", default=".", help="repository to scan (default: .)")

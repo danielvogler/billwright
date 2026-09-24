@@ -110,6 +110,20 @@ def test_render_writes_a_pdf_and_reports_the_same_total(profile, tmp_path, asset
     assert written.exists()
 
 
+def test_an_archived_bill_is_recorded_and_verifies(copied, tmp_path, assets):
+    """Same record and same check as the command line: one engine, two doors."""
+    archive_dir = tmp_path / "archive"
+    result = mcp_server.render_bill(
+        copied, "RE-26001", archive=True, assets=assets, archive_dir=archive_dir
+    )
+
+    assert result["archived"] is True
+    assert list(archive_dir.rglob("*.provenance.json"))
+    report = mcp_server.verify(copied, assets, archive_dir)
+    assert report["ok"] is True
+    assert len(report["verified"]) == 1
+
+
 def test_statement_revenue_follows_paid_on(profile, tmp_path, assets):
     # RE-26002 is issued 2026-12-18 and paid 2027-01-14, so it is 2027 income.
     y2026 = mcp_server.render_statement(profile, 2026, assets=assets, out=tmp_path)
@@ -143,4 +157,5 @@ def test_the_server_offers_the_documented_tools(profile):
         "statement",
         "check_bills",
         "check_profile",
+        "verify_archive",
     }

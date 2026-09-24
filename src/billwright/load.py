@@ -440,11 +440,16 @@ def load_bills(profile: Path, year: int | None = None) -> list[Bill]:
     return [load_bill(profile, path) for path in bill_paths(profile, year)]
 
 
-def find_bill(profile: Path, number: str) -> Bill:
+def bill_file(profile: Path, number: str) -> Path:
+    """The TOML that bill ``number`` is loaded from."""
     for path in bill_paths(profile):
         if path.stem.upper() == number.strip().upper():
-            return load_bill(profile, path)
+            return path
     raise ProfileError(f"no bill file for {number} under {profile / 'bills'}")
+
+
+def find_bill(profile: Path, number: str) -> Bill:
+    return load_bill(profile, bill_file(profile, number))
 
 
 def load_expenses(profile: Path, year: int) -> tuple[list[ExpenseItem], dict]:

@@ -47,7 +47,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2 poppler-utils
 
-      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
@@ -86,7 +86,7 @@ jobs:
       # structural checks pass happily while the layout is broken.
       - name: Upload rendered PDFs
         if: matrix.python-version == '3.13'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: example-documents
           path: out/*.pdf
@@ -103,7 +103,7 @@ jobs:
       - name: Install native libraries
         run: brew install pango
 
-      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
           python-version: "3.13"
@@ -129,7 +129,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2
 
-      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
           python-version: "3.13"
